@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Footer from './components/footer/Footer';
 import Navbar from './components/navbar/NavBar'
 
-
 import Home from './pages/home/Home'
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias'
 import FormularioCategoria from './components/categorias/formularioCategoria/FormularioCategoria'
@@ -13,7 +12,7 @@ function App() {
     <>
        <BrowserRouter>
       <Navbar />
-      <div className="min-h-[80vh]">
+      <div className="min-h-[80vh] bg-dark-20">
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />

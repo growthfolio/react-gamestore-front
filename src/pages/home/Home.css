@@ -1,0 +1,34 @@
+.img-logo{
+    width: 500px;
+    height: 500px;
+    display: block;
+    margin: 0 auto;
+}
+
+.container-slider {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  
+ .title-slider { 
+    text-align: center;
+    margin: 24px 0;
+  }
+
+  .slide-item{
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: rgb(239 68 68) !important;
+  }
+  .swiper-button-next, .swiper-button-prev {
+    color: rgb(239 68 68) !important;
+  }
+
+  .swiper-pagination-progressbar-fill {
+    background: rgb(239 68 68) !important;
+  }
