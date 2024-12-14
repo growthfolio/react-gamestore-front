@@ -1,25 +1,51 @@
-import { Link } from 'react-router-dom'
-import Categoria from '../../../models/categorias/Categoria'
+import { Link } from "react-router-dom";
+import Categoria from "../../../models/categorias/Categoria";
 
 interface CardCategoriaProps {
-  categoria: Categoria
+  categoria: Categoria;
 }
 
-function CardCategorias({categoria}: CardCategoriaProps) {
-return (
-  <div className='border border-dark-40/80 shadow-md shadow-dark-40/50 flex flex-col rounded-2xl overflow-hidden justify-between'>
-    <header className='py-2 px-6 border border-dark-40/80 bg-dark-30/30 text-dark-60 font-bold text-2xl text-center'>Categoria</header>
-    <p className='p-8 text-3xl text-dark-60 bg-dark-30/30 h-full text-center'>{categoria.tipo}</p>
-    <div className="flex">
-      <Link to={`/editarCategoria/${categoria.id}`} className='w-full border border-dark-40/80 text-dark-60 bg-dark-30/30 hover:bg-dark-50/30 flex items-center justify-center py-2'>
-        <button>Editar</button>
-      </Link>
-      <Link to={`/deletarCategoria/${categoria.id}`} className='border border-dark-40/80 text-dark-60 bg-dark-30/30 hover:bg-dark-50/30 w-full flex items-center justify-center'>
-        <button>Deletar</button>
-      </Link>
+function CardCategorias({ categoria }: CardCategoriaProps) {
+  return (
+    <div className="flex items-center justify-between border-b border-gray-300 py-4 px-6 hover:bg-gray-100 transition-colors">
+      {/* Coluna: Tipo */}
+      <div className="flex-1 text-gray-700 font-medium">
+        <span>{categoria.tipo}</span>
+      </div>
+
+      {/* Coluna: Descrição */}
+      <div className="flex-1 text-gray-500">
+        <span>{categoria.descricao || "Sem descrição"}</span>
+      </div>
+
+      {/* Coluna: Status */}
+      <div className="flex-1 text-center">
+        <span
+          className={`px-3 py-1 rounded-full text-sm ${
+            categoria.ativo ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+          }`}
+        >
+          {categoria.ativo ? "Ativo" : "Inativo"}
+        </span>
+      </div>
+
+      {/* Coluna: Ações */}
+      <div className="flex gap-2">
+        <Link
+          to={`/editarCategoria/${categoria.id}`}
+          className="text-blue-500 hover:text-blue-700 transition-colors text-sm"
+        >
+          Editar
+        </Link>
+        <Link
+          to={`/deletarCategoria/${categoria.id}`}
+          className="text-red-500 hover:text-red-700 transition-colors text-sm"
+        >
+          Deletar
+        </Link>
+      </div>
     </div>
-  </div>
-)
+  );
 }
 
-export default CardCategorias
+export default CardCategorias;

@@ -1,27 +1,58 @@
-import { Link } from "react-router-dom"
-import { SignOut } from '@phosphor-icons/react'
-
+import { Link } from "react-router-dom";
+import { SignOut } from "@phosphor-icons/react";
 
 function NavBar() {
- 
+  return (
+    <>
+      <div className="w-full bg-gray-800 text-gray-100 shadow-lg">
+        <div className="container mx-auto flex justify-between items-center py-4 px-6">
+          {/* Logo */}
+          <Link
+            to="/home"
+            className="text-2xl font-bold uppercase text-white-500 hover:text-gray-400 transition-colors"
+          >
+            Energy Games
+          </Link>
 
-    return (
-      <>
-       <div className='w-full bg-dark-30/100 text-dark-60/100 flex justify-center py-4'>
-            <div className="container flex justify-between text-lg">
-              <Link to='/home' className='text-2xl font-bold uppercase'>Energy Games</Link>
-  
-              <div className='flex gap-4 cursor-pointer'>
-               <Link to='/home' className='hover:bg-red-500 font-bold px-3 rounded-lg'>Home</Link>
-                <Link to='/home' className='hover:bg-red-500 font-bold px-3 rounded-lg'>Produtos</Link>
-                <Link to='/categorias' className='hover:bg-red-500 font-bold px-3 rounded-lg'>Categorias</Link>
-                <Link to='/cadastrarCategoria' className='hover:bg-red-500 font-bold px-3 rounded-lg'>Cad. Categoria</Link>
-                <a className='hover:underline text-center font-bold  rounded-xl text-red-500 p-1 hover:bg-red-500 hover:text-dark-60'><SignOut size={22} weight='bold' /></a>
-              </div>
-            </div>
+          {/* Navigation Links */}
+          <div className="flex items-center gap-6">
+            <Link
+              to="/home"
+              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+            >
+              Home
+            </Link>
+            <Link
+              to="/produtos"
+              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+            >
+              Produtos
+            </Link>
+            <Link
+              to="/categorias"
+              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+            >
+              Categorias
+            </Link>
+            <Link
+              to="/cadastrarCategoria"
+              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+            >
+              Cad. Categoria
+            </Link>
+            {/* Sign Out */}
+            <a
+              href="#"
+              className="flex items-center justify-center gap-2 text-white-500 hover:bg-red-500 hover:text-gray-100 py-2 px-4 rounded-lg transition-all"
+              aria-label="Sign Out"
+            >
+              <SignOut size={22} weight="bold" />
+            </a>
           </div>
-      </>
-    )
-  }
-  /*  <SignOut size={32} /> */
-  export default NavBar
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default NavBar;
