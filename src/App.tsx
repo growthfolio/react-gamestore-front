@@ -6,6 +6,9 @@ import Home from './pages/home/Home'
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias'
 import FormularioCategoria from './components/categorias/formularioCategoria/FormularioCategoria'
 import DeletarCategoria from './components/categorias/deletarCategorias/DeletarCategoria'
+import FormularioProduto from './components/produtos/formularioProduto/FormularioProduto';
+import ListaProdutos from './components/produtos/listaProdutos/ListaProdutos';
+import DeletarProduto from './components/produtos/deletarProdutos/DeletarProduto';
 
 function App() {
   return (
@@ -18,9 +21,12 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/Categorias" element={<ListaCategorias />} />
         <Route path="/cadastrarCategoria" element={<FormularioCategoria />} />
-  
-        <Route path="/editarcategoria/:id" element={<FormularioCategoria />} />   {/* :id = é uma variavel que vem pela url do Front, que represenda o id do item que vai ser editado */}
+        <Route path="/editarCategoria/:id" element={<FormularioCategoria />} />   {/* :id = é uma variavel que vem pela url do Front, que represenda o id do item que vai ser editado */}
         <Route path="/deletarCategoria/:id" element={<DeletarCategoria />} />
+        <Route path="/Produtos" element={<ListaProdutos />} />
+        <Route path="/cadastrarProduto" element={<FormularioProduto />} />
+        <Route path="/editarProduto/:id" element={<FormularioProduto />} />   {/* :id = é uma variavel que vem pela url do Front, que represenda o id do item que vai ser editado */}
+        <Route path="/deletarProduto/:id" element={<DeletarProduto />} />
         </Routes>
       </div>
 
