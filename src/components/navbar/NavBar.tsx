@@ -29,6 +29,12 @@ function NavBar() {
               Produtos
             </Link>
             <Link
+              to="/cadastrarProduto"
+              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+            >
+              Cad. Produto
+            </Link>
+            <Link
               to="/categorias"
               className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
             >
