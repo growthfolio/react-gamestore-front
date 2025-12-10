@@ -1,5 +1,3 @@
-import React from 'react';
-
 const TypographyDemo = () => {
   return (
     <div className="min-h-screen bg-neutral-950 py-12">

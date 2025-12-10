@@ -11,7 +11,7 @@ import produtoService from '../../services/produto.service';
 import categoriaService from '../../services/categoria.service';
 import Produto from '../../models/produtos/Produto';
 import Categoria from '../../models/categorias/Categoria';
-import { ShoppingCart, GameController, Heart, Star, ArrowUp, MagnifyingGlass, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
+import { ShoppingCart, GameController, Heart, Star, ArrowUp, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
 import { useAuth } from '../../contexts/AuthContext';

@@ -1,5 +1,4 @@
 // 🎨 EXEMPLOS DE APLICAÇÃO DO NOVO BRANDING
-import React from 'react';
 
 // 🎮 BOTÕES COM NOVA IDENTIDADE
 export const GameButtons = () => {

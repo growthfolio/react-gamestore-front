@@ -1,4 +1,3 @@
-import React from 'react';
 import { GameButtons, GameCard, GamingNavbar } from '../examples/BrandingExamples';
 
 const BrandingDemo = () => {
