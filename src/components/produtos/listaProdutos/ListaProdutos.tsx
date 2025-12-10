@@ -1,29 +1,40 @@
 import { useEffect, useState } from "react";
 import { Dna } from "react-loader-spinner";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
+import categoriaService from "../../../services/categoria.service";
 import { PencilSimple, Trash, MagnifyingGlass } from "@phosphor-icons/react";
 import Produto from "../../../models/produtos/Produto";
+import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
 
 function ListaProdutos() {
   const { isAdmin } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalElementos, setTotalElementos] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [busca, setBusca] = useState("");
+  const [categoriaId, setCategoriaId] = useState("");
   const [ordenacao, setOrdenacao] = useState("nome,asc");
   const itensPorPagina = 12;
 
-  async function buscarProdutos(pagina: number = 0, termoBusca: string = "", sort: string = "nome,asc") {
+  async function buscarProdutos(pagina: number = 0, termoBusca: string = "", catId: string = "", sort: string = "nome,asc") {
     try {
       setIsLoading(true);
       
       let response;
       if (termoBusca.trim()) {
         response = await produtoService.buscarPorNome(termoBusca, {
+          page: pagina,
+          size: itensPorPagina,
+          sort,
+        });
+      } else if (catId) {
+        response = await produtoService.buscarPorCategoria(Number(catId), {
           page: pagina,
           size: itensPorPagina,
           sort,
@@ -48,30 +59,57 @@ function ListaProdutos() {
     }
   }
 
+  async function carregarCategorias() {
+    try {
+      const cats = await categoriaService.listar();
+      setCategorias(cats);
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+    }
+  }
+
   useEffect(() => {
-    buscarProdutos(0, busca, ordenacao);
+    carregarCategorias();
+    const catParam = searchParams.get('categoria');
+    if (catParam) {
+      setCategoriaId(catParam);
+    }
   }, []);
+
+  useEffect(() => {
+    buscarProdutos(0, busca, categoriaId, ordenacao);
+  }, [categoriaId]);
 
   const handleBusca = (e: React.FormEvent) => {
     e.preventDefault();
-    buscarProdutos(0, busca, ordenacao);
+    buscarProdutos(0, busca, categoriaId, ordenacao);
+  };
+
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCatId = e.target.value;
+    setCategoriaId(newCatId);
+    if (newCatId) {
+      setSearchParams({ categoria: newCatId });
+    } else {
+      setSearchParams({});
+    }
   };
 
   const handleOrdenacao = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const novaOrdenacao = e.target.value;
     setOrdenacao(novaOrdenacao);
-    buscarProdutos(paginaAtual, busca, novaOrdenacao);
+    buscarProdutos(paginaAtual, busca, categoriaId, novaOrdenacao);
   };
 
   const irParaPaginaAnterior = () => {
     if (paginaAtual > 0) {
-      buscarProdutos(paginaAtual - 1, busca, ordenacao);
+      buscarProdutos(paginaAtual - 1, busca, categoriaId, ordenacao);
     }
   };
 
   const irParaProximaPagina = () => {
     if (paginaAtual < totalPaginas - 1) {
-      buscarProdutos(paginaAtual + 1, busca, ordenacao);
+      buscarProdutos(paginaAtual + 1, busca, categoriaId, ordenacao);
     }
   };
 
@@ -80,9 +118,9 @@ function ListaProdutos() {
       <h1 className="text-3xl font-bold text-center mb-8">Catálogo de Produtos</h1>
 
       {/* Barra de Busca e Filtros */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="mb-6 flex flex-col lg:flex-row gap-4 items-center">
         {/* Busca */}
-        <form onSubmit={handleBusca} className="flex gap-2 flex-1 max-w-md">
+        <form onSubmit={handleBusca} className="flex gap-2 flex-1 max-w-md w-full">
           <input
             type="text"
             value={busca}
@@ -99,13 +137,30 @@ function ListaProdutos() {
           </button>
         </form>
 
+        {/* Filtro por Categoria */}
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          <label className="text-gray-700 font-medium">Categoria:</label>
+          <select
+            value={categoriaId}
+            onChange={handleCategoriaChange}
+            className="flex-1 lg:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Todas</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Ordenação */}
-        <div className="flex items-center gap-2">
-          <label className="text-gray-700 font-medium">Ordenar por:</label>
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          <label className="text-gray-700 font-medium">Ordenar:</label>
           <select
             value={ordenacao}
             onChange={handleOrdenacao}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 lg:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="nome,asc">Nome (A-Z)</option>
             <option value="nome,desc">Nome (Z-A)</option>

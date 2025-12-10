@@ -15,6 +15,7 @@ import Cadastro from './pages/cadastro/Cadastro';
 import DetalheProduto from './pages/detalheProduto/DetalheProduto';
 import Favoritos from './pages/favoritos/Favoritos';
 import Carrinho from './pages/carrinho/Carrinho';
+import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
@@ -75,6 +76,14 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <DeletarCategoria />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/igdb"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminIGDB />
                     </ProtectedRoute>
                   }
                 />

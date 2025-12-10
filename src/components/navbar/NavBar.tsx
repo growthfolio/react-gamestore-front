@@ -63,6 +63,12 @@ function NavBar() {
                 >
                   Cad. Categoria
                 </Link>
+                <Link
+                  to="/admin/igdb"
+                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                >
+                  IGDB
+                </Link>
               </>
             )}
 
