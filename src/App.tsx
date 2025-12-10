@@ -13,6 +13,8 @@ import Home from './pages/home/Home';
 import Login from './pages/login/Login';
 import Cadastro from './pages/cadastro/Cadastro';
 import DetalheProduto from './pages/detalheProduto/DetalheProduto';
+import Favoritos from './pages/favoritos/Favoritos';
+import Carrinho from './pages/carrinho/Carrinho';
 
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
@@ -40,6 +42,8 @@ function App() {
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/produtos" element={<ListaProdutos />} />
                 <Route path="/produtos/:id" element={<DetalheProduto />} />
+                <Route path="/favoritos" element={<Favoritos />} />
+                <Route path="/carrinho" element={<Carrinho />} />
 
                 {/* Rotas Protegidas - Admin */}
                 <Route

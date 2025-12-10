@@ -8,6 +8,7 @@ import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/aval
 import { useAuth } from '../../contexts/AuthContext';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
+import FormularioAvaliacao from '../../components/avaliacoes/formularioAvaliacao/FormularioAvaliacao';
 import './DetalheProduto.css';
 
 function DetalheProduto() {
@@ -299,6 +300,12 @@ function DetalheProduto() {
           )}
         </div>
       </div>
+
+      {/* Formulário de Avaliação */}
+      <FormularioAvaliacao 
+        produtoId={produto.id} 
+        onAvaliacaoEnviada={carregarAvaliacoes}
+      />
 
       {/* Avaliações */}
       <div className="mt-12">
