@@ -3,8 +3,6 @@ import { RotatingLines } from "react-loader-spinner";
 import { useNavigate, useParams } from "react-router-dom";
 import Produto from "../../../models/produtos/Produto";
 import produtoService from "../../../services/produto.service";
-import categoriaService from "../../../services/categoria.service";
-import Categoria from "../../../models/categorias/Categoria";
 
 function FormularioProduto() {
   const [produto, setProduto] = useState<Produto>({
@@ -34,23 +32,12 @@ function FormularioProduto() {
     publisher: "",
     imagens: "",
   });
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    carregarCategorias();
     if (id) buscarPorId(id);
   }, [id]);
-
-  async function carregarCategorias() {
-    try {
-      const cats = await categoriaService.listar();
-      setCategorias(cats);
-    } catch (error) {
-      console.error("Erro ao carregar categorias:", error);
-    }
-  }
 
   async function buscarPorId(id: string) {
     try {

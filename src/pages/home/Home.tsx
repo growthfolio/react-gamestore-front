@@ -11,7 +11,7 @@ import produtoService from '../../services/produto.service';
 import categoriaService from '../../services/categoria.service';
 import Produto from '../../models/produtos/Produto';
 import Categoria from '../../models/categorias/Categoria';
-import { Star, ShoppingCart, GameController } from '@phosphor-icons/react';
+import { ShoppingCart, GameController } from '@phosphor-icons/react';
 
 function Home() {
     const navigate = useNavigate();
@@ -119,7 +119,7 @@ function Home() {
                             >
                                 <div className="relative h-64 bg-gray-100">
                                     <img
-                                        src={produto.foto || '/placeholder-game.png'}
+                                        src={produto.imagens?.[0] || '/placeholder-game.png'}
                                         alt={produto.nome}
                                         className="w-full h-full object-cover"
                                     />
@@ -156,7 +156,7 @@ function Home() {
                                         )}
                                     </div>
 
-                                    {produto.quantidade && produto.quantidade > 0 ? (
+                                    {produto.estoque && produto.estoque > 0 ? (
                                         <span className="text-sm text-green-600">Em estoque</span>
                                     ) : (
                                         <span className="text-sm text-red-600 font-bold">Esgotado</span>

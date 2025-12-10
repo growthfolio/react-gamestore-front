@@ -200,7 +200,7 @@ function ListaProdutos() {
               </tr>
             </thead>
             <tbody>
-              {produtosPaginadas.map((produto, index) => (
+              {produtos.map((produto: Produto, index: number) => (
                 <tr
                   key={produto.id}
                   className={`transition-colors ${

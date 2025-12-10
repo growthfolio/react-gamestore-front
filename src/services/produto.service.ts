@@ -60,6 +60,16 @@ class ProdutoService {
   }
 
   /**
+   * Busca produtos por categoria
+   */
+  async buscarPorCategoria(categoriaId: number, params?: PaginationParams): Promise<PaginatedResponse<Produto>> {
+    const response = await api.get<PaginatedResponse<Produto>>(`/produtos/categoria/${categoriaId}`, {
+      params,
+    });
+    return response.data;
+  }
+
+  /**
    * Cria novo produto (apenas admin)
    */
   async criar(dados: ProdutoRequest): Promise<Produto> {

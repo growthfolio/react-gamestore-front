@@ -8,19 +8,15 @@ import { PencilSimple, Trash } from "@phosphor-icons/react";
 function ListaCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const itensPorPagina = 10;
 
   async function buscarCategorias() {
     try {
-      setIsLoading(true);
       const cats = await categoriaService.listar();
       setCategorias(cats);
     } catch (error: any) {
       console.error("Erro ao listar categorias:", error);
       alert("Erro ao listar as categorias");
-    } finally {
-      setIsLoading(false);
     }
   }
 
