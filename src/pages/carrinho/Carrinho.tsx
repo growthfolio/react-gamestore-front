@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { CarrinhoItem } from '../../services/carrinho.service';
 import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from 'lucide-react';
 import './Carrinho.css';
 
@@ -23,7 +24,7 @@ const Carrinho: React.FC = () => {
     };
 
     const calcularTotal = () => {
-        return itens.reduce((total, item) => {
+        return itens.reduce((total: number, item: CarrinhoItem) => {
             return total + calcularSubtotal(item.produto.preco, item.produto.desconto, item.quantidade);
         }, 0);
     };
@@ -31,11 +32,11 @@ const Carrinho: React.FC = () => {
     const handleAtualizarQuantidade = async (itemId: number, novaQuantidade: number) => {
         if (novaQuantidade < 1) return;
 
-        const item = itens.find(i => i.id === itemId);
+        const item = itens.find((i: CarrinhoItem) => i.id === itemId);
         if (!item) return;
 
-        if (novaQuantidade > item.produto.quantidade) {
-            alert(`Quantidade máxima disponível: ${item.produto.quantidade}`);
+        if (novaQuantidade > item.produto.estoque) {
+            alert(`Quantidade máxima disponível: ${item.produto.estoque}`);
             return;
         }
 
@@ -119,14 +120,14 @@ const Carrinho: React.FC = () => {
                             </button>
                         </div>
 
-                        {itens.map(item => (
+                        {itens.map((item: CarrinhoItem) => (
                             <div key={item.id} className="carrinho-item">
                                 <div 
                                     className="item-imagem"
                                     onClick={() => handleVerDetalhes(item.produto.id)}
                                 >
                                     <img 
-                                        src={item.produto.foto || '/placeholder-game.png'} 
+                                        src={item.produto.imagens?.[0] || '/placeholder-game.png'} 
                                         alt={item.produto.nome}
                                     />
                                     {item.produto.desconto && item.produto.desconto > 0 && (
@@ -164,7 +165,7 @@ const Carrinho: React.FC = () => {
                                     </div>
 
                                     <span className="item-estoque">
-                                        {item.produto.quantidade} disponíveis
+                                        {item.produto.estoque} disponíveis
                                     </span>
                                 </div>
 
@@ -180,7 +181,7 @@ const Carrinho: React.FC = () => {
                                     <button
                                         className="btn-quantidade"
                                         onClick={() => handleAtualizarQuantidade(item.id, item.quantidade + 1)}
-                                        disabled={item.quantidade >= item.produto.quantidade}
+                                        disabled={item.quantidade >= item.produto.estoque}
                                     >
                                         <Plus size={16} />
                                     </button>

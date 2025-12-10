@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import carrinhoService, { Carrinho, CarrinhoItem, CarrinhoItemRequest } from '../services/carrinho.service';
+import carrinhoService, { Carrinho, CarrinhoItemRequest } from '../services/carrinho.service';
 import { useAuth } from './AuthContext';
 
 interface CarrinhoContextData {
   carrinho: Carrinho | null;
+  itens: any[];
   isLoading: boolean;
   adicionarItem: (dados: CarrinhoItemRequest) => Promise<void>;
   atualizarItem: (itemId: number, quantidade: number) => Promise<void>;
@@ -109,6 +110,7 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
 
   const value: CarrinhoContextData = {
     carrinho,
+    itens: carrinho?.itens || [],
     isLoading,
     adicionarItem,
     atualizarItem,

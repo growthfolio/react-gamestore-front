@@ -1,6 +1,4 @@
 import api from './api';
-import Produto from '../models/produtos/Produto';
-import { Usuario } from './auth.service';
 
 export interface AvaliacaoRequest {
   produtoId: number;

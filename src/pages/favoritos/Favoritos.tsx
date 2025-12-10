@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useFavoritos } from '../../contexts/FavoritosContext';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { produtoService } from '../../services/produto.service';
-import { Produto } from '../../models/produtos/Produto';
+import produtoService from '../../services/produto.service';
+import Produto from '../../models/produtos/Produto';
 import { ShoppingCart, Trash2, Heart } from 'lucide-react';
 import './Favoritos.css';
 
@@ -33,9 +33,9 @@ const Favoritos: React.FC = () => {
             }
 
             // Carrega os detalhes de cada produto favorito
-            const promises = favoritos.map(id => produtoService.buscarPorId(id));
+            const promises = favoritos.map(fav => produtoService.buscarPorId(fav.produto.id));
             const produtosCarregados = await Promise.all(promises);
-            setProdutos(produtosCarregados.filter(p => p !== null) as Produto[]);
+            setProdutos(produtosCarregados.filter((p): p is Produto => p !== null));
         } catch (error) {
             console.error('Erro ao carregar favoritos:', error);
         } finally {
@@ -49,7 +49,7 @@ const Favoritos: React.FC = () => {
 
     const handleAdicionarCarrinho = async (produto: Produto) => {
         try {
-            await adicionarItem(produto.id, 1);
+            await adicionarItem({ produtoId: produto.id, quantidade: 1 });
             alert(`${produto.nome} adicionado ao carrinho!`);
         } catch (error) {
             console.error('Erro ao adicionar ao carrinho:', error);
@@ -98,7 +98,7 @@ const Favoritos: React.FC = () => {
                                 onClick={() => handleVerDetalhes(produto.id)}
                             >
                                 <img 
-                                    src={produto.foto || '/placeholder-game.png'} 
+                                    src={produto.imagens?.[0] || '/placeholder-game.png'} 
                                     alt={produto.nome}
                                 />
                                 {produto.desconto && produto.desconto > 0 && (
@@ -135,9 +135,9 @@ const Favoritos: React.FC = () => {
                                     )}
                                 </div>
 
-                                {produto.quantidade && produto.quantidade > 0 ? (
+                                {produto.estoque && produto.estoque > 0 ? (
                                     <span className="produto-estoque">
-                                        {produto.quantidade} em estoque
+                                        {produto.estoque} em estoque
                                     </span>
                                 ) : (
                                     <span className="produto-estoque-zero">
@@ -150,7 +150,7 @@ const Favoritos: React.FC = () => {
                                 <button
                                     className="btn-carrinho"
                                     onClick={() => handleAdicionarCarrinho(produto)}
-                                    disabled={!produto.quantidade || produto.quantidade === 0}
+                                    disabled={!produto.estoque || produto.estoque === 0}
                                     title="Adicionar ao carrinho"
                                 >
                                     <ShoppingCart size={18} />

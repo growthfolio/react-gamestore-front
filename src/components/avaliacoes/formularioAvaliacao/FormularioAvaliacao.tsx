@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Star } from 'lucide-react';
-import { avaliacaoService } from '../../services/avaliacao.service';
-import { useAuth } from '../../contexts/AuthContext';
+import avaliacaoService from '../../../services/avaliacao.service';
+import { useAuth } from '../../../contexts/AuthContext';
 import './FormularioAvaliacao.css';
 
 interface FormularioAvaliacaoProps {
@@ -44,9 +44,9 @@ const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({
             setErro('');
 
             await avaliacaoService.criar({
+                produtoId,
                 nota,
-                comentario: comentario.trim(),
-                produto: { id: produtoId }
+                comentario: comentario.trim()
             });
 
             setSucesso(true);

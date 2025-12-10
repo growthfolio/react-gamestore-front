@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Download, GameController, X } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Search, Download, Gamepad2, X } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
 import './AdminIGDB.css';
 
 interface IGDBGame {
@@ -108,7 +108,7 @@ const AdminIGDB: React.FC = () => {
     return (
         <div className="admin-igdb-container">
             <div className="admin-igdb-header">
-                <GameController size={32} className="header-icon" />
+                <Gamepad2 size={32} className="header-icon" />
                 <h1>Painel IGDB - Importação de Jogos</h1>
                 <p>Busque e importe jogos da base de dados IGDB</p>
             </div>
@@ -263,7 +263,7 @@ const AdminIGDB: React.FC = () => {
             {/* Estado Vazio */}
             {searchResults.length === 0 && !loading && (
                 <div className="empty-state">
-                    <GameController size={64} className="empty-icon" />
+                    <Gamepad2 size={64} className="empty-icon" />
                     <h3>Nenhuma busca realizada</h3>
                     <p>Use a barra de busca acima para encontrar jogos no IGDB</p>
                 </div>
