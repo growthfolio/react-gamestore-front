@@ -2,19 +2,25 @@ import { useEffect, useState } from "react";
 import { Dna } from "react-loader-spinner";
 import { Link } from "react-router-dom";
 import Categoria from "../../../models/categorias/Categoria";
-import { buscar } from "../../../services/Services";
+import categoriaService from "../../../services/categoria.service";
 import { PencilSimple, Trash } from "@phosphor-icons/react";
 
 function ListaCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const itensPorPagina = 5;
+  const [isLoading, setIsLoading] = useState(false);
+  const itensPorPagina = 10;
 
   async function buscarCategorias() {
     try {
-      await buscar("/categorias", setCategorias);
+      setIsLoading(true);
+      const cats = await categoriaService.listar();
+      setCategorias(cats);
     } catch (error: any) {
+      console.error("Erro ao listar categorias:", error);
       alert("Erro ao listar as categorias");
+    } finally {
+      setIsLoading(false);
     }
   }
 

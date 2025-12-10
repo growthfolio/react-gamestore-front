@@ -2,7 +2,9 @@ import { useState, useEffect, ChangeEvent } from "react";
 import { RotatingLines } from "react-loader-spinner";
 import { useNavigate, useParams } from "react-router-dom";
 import Produto from "../../../models/produtos/Produto";
-import { buscar, atualizar, cadastrar } from "../../../services/Services";
+import produtoService from "../../../services/produto.service";
+import categoriaService from "../../../services/categoria.service";
+import Categoria from "../../../models/categorias/Categoria";
 
 function FormularioProduto() {
   const [produto, setProduto] = useState<Produto>({
@@ -32,17 +34,30 @@ function FormularioProduto() {
     publisher: "",
     imagens: "",
   });
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
+    carregarCategorias();
     if (id) buscarPorId(id);
   }, [id]);
 
+  async function carregarCategorias() {
+    try {
+      const cats = await categoriaService.listar();
+      setCategorias(cats);
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+    }
+  }
+
   async function buscarPorId(id: string) {
     try {
-      await buscar(`/produtos/${id}`, setProduto);
+      const produtoData = await produtoService.buscarPorId(Number(id));
+      setProduto(produtoData);
     } catch (error) {
+      console.error("Erro ao carregar produto:", error);
       alert("Erro ao carregar os dados do produto.");
     }
   }
@@ -117,16 +132,32 @@ function FormularioProduto() {
 
     setIsLoading(true);
     try {
+      const produtoRequest = {
+        nome: produto.nome,
+        descricao: produto.descricao,
+        preco: Number(produto.preco),
+        desconto: produto.desconto ? Number(produto.desconto) : undefined,
+        estoque: Number(produto.estoque),
+        plataforma: produto.plataforma,
+        categoriaId: Number(produto.categoriaId),
+        desenvolvedor: produto.desenvolvedor,
+        publisher: produto.publisher,
+        dataLancamento: produto.dataLancamento,
+        imagens: produto.imagens,
+        ativo: produto.ativo,
+      };
+
       if (id) {
-        await atualizar(`/produtos`, produto, setProduto);
+        await produtoService.atualizar(Number(id), produtoRequest);
         alert("Produto atualizado com sucesso!");
       } else {
-        await cadastrar(`/produtos`, produto, setProduto);
+        await produtoService.criar(produtoRequest);
         alert("Produto cadastrado com sucesso!");
       }
       navigate("/produtos");
-    } catch (error) {
-      alert("Erro ao salvar o produto.");
+    } catch (error: any) {
+      console.error("Erro ao salvar produto:", error);
+      alert(error.response?.data?.message || "Erro ao salvar o produto.");
     } finally {
       setIsLoading(false);
     }

@@ -1,61 +1,137 @@
 import { useEffect, useState } from "react";
 import { Dna } from "react-loader-spinner";
 import { Link } from "react-router-dom";
-import { buscar } from "../../../services/Services";
-import { PencilSimple, Trash } from "@phosphor-icons/react";
+import produtoService from "../../../services/produto.service";
+import { PencilSimple, Trash, MagnifyingGlass } from "@phosphor-icons/react";
 import Produto from "../../../models/produtos/Produto";
+import { useAuth } from "../../../contexts/AuthContext";
 
 function ListaProdutos() {
+  const { isAdmin } = useAuth();
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const itensPorPagina = 5;
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalElementos, setTotalElementos] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [ordenacao, setOrdenacao] = useState("nome,asc");
+  const itensPorPagina = 12;
 
-  async function buscarProdutos() {
+  async function buscarProdutos(pagina: number = 0, termoBusca: string = "", sort: string = "nome,asc") {
     try {
-      await buscar("/produtos", setProdutos);
+      setIsLoading(true);
+      
+      let response;
+      if (termoBusca.trim()) {
+        response = await produtoService.buscarPorNome(termoBusca, {
+          page: pagina,
+          size: itensPorPagina,
+          sort,
+        });
+      } else {
+        response = await produtoService.listar({
+          page: pagina,
+          size: itensPorPagina,
+          sort,
+        });
+      }
+
+      setProdutos(response.content);
+      setTotalPaginas(response.totalPages);
+      setTotalElementos(response.totalElements);
+      setPaginaAtual(response.number);
     } catch (error: any) {
-      alert("Erro ao listar as produtos");
+      console.error("Erro ao listar produtos:", error);
+      alert("Erro ao carregar produtos");
+    } finally {
+      setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    buscarProdutos();
+    buscarProdutos(0, busca, ordenacao);
   }, []);
 
-  // Cálculo para paginação
-  const indiceInicial = (paginaAtual - 1) * itensPorPagina;
-  const indiceFinal = indiceInicial + itensPorPagina;
-  const produtosPaginadas = produtos.slice(indiceInicial, indiceFinal);
-  const totalPaginas = Math.ceil(produtos.length / itensPorPagina);
+  const handleBusca = (e: React.FormEvent) => {
+    e.preventDefault();
+    buscarProdutos(0, busca, ordenacao);
+  };
 
-  // Funções para mudar página
+  const handleOrdenacao = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const novaOrdenacao = e.target.value;
+    setOrdenacao(novaOrdenacao);
+    buscarProdutos(paginaAtual, busca, novaOrdenacao);
+  };
+
   const irParaPaginaAnterior = () => {
-    if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
+    if (paginaAtual > 0) {
+      buscarProdutos(paginaAtual - 1, busca, ordenacao);
+    }
   };
 
   const irParaProximaPagina = () => {
-    if (paginaAtual < totalPaginas) setPaginaAtual(paginaAtual + 1);
+    if (paginaAtual < totalPaginas - 1) {
+      buscarProdutos(paginaAtual + 1, busca, ordenacao);
+    }
   };
 
   return (
-    <>
-      {produtos.length === 0 && (
-        <div className="flex justify-center py-8">
-          <Dna
-            visible={true}
-            height="100"
-            width="100"
-            ariaLabel="Carregando produtos"
+    <div className="container mx-auto my-12 px-4">
+      <h1 className="text-3xl font-bold text-center mb-8">Catálogo de Produtos</h1>
+
+      {/* Barra de Busca e Filtros */}
+      <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+        {/* Busca */}
+        <form onSubmit={handleBusca} className="flex gap-2 flex-1 max-w-md">
+          <input
+            type="text"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar produtos..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <MagnifyingGlass size={20} weight="bold" />
+            Buscar
+          </button>
+        </form>
+
+        {/* Ordenação */}
+        <div className="flex items-center gap-2">
+          <label className="text-gray-700 font-medium">Ordenar por:</label>
+          <select
+            value={ordenacao}
+            onChange={handleOrdenacao}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="nome,asc">Nome (A-Z)</option>
+            <option value="nome,desc">Nome (Z-A)</option>
+            <option value="preco,asc">Menor Preço</option>
+            <option value="preco,desc">Maior Preço</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Info de Resultados */}
+      <div className="mb-4 text-gray-600">
+        Mostrando {produtos.length} de {totalElementos} produtos
+      </div>
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex justify-center py-8">
+          <Dna visible={true} height="100" width="100" ariaLabel="Carregando produtos" />
         </div>
       )}
 
-      {produtos.length > 0 && (
-        <div className="container mx-auto my-12">
-          <h1 className="text-3xl font-bold text-center mb-8">Produtos</h1>
-
-          {/* Tabela de Produtos */}
-          <table className="w-full border-collapse border border-gray-300">
+      {/* Tabela de Produtos */}
+      {!isLoading && produtos.length > 0 && (
+        <>
+          <div className="overflow-x-auto shadow-md rounded-lg">
+            <table className="w-full border-collapse border border-gray-300 bg-white">
             <thead>
               <tr className="bg-gray-200">
                 <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
@@ -100,22 +176,34 @@ function ListaProdutos() {
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-center">
                     <div className="flex justify-center gap-3">
-                      {/* Botão Editar */}
-                      <Link
-                        to={`/editarProduto/${produto.id}`}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Editar"
-                      >
-                        <PencilSimple size={22} weight="light" />
-                      </Link>
+                      {/* Botão Editar - Apenas Admin */}
+                      {isAdmin && (
+                        <>
+                          <Link
+                            to={`/editarProduto/${produto.id}`}
+                            className="text-blue-500 hover:text-blue-700"
+                            title="Editar"
+                          >
+                            <PencilSimple size={22} weight="light" />
+                          </Link>
 
-                      {/* Botão Deletar */}
+                          {/* Botão Deletar */}
+                          <Link
+                            to={`/deletarProduto/${produto.id}`}
+                            className="text-red-500 hover:text-red-700"
+                            title="Excluir"
+                          >
+                            <Trash size={22} weight="light" />
+                          </Link>
+                        </>
+                      )}
+                      
+                      {/* Link Ver Detalhes - Todos */}
                       <Link
-                        to={`/deletarProduto/${produto.id}`}
-                        className="text-red-500 hover:text-red-700"
-                        title="Excluir"
+                        to={`/produtos/${produto.id}`}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
                       >
-                        <Trash size={22} weight="light" />
+                        Ver Detalhes
                       </Link>
                     </div>
                   </td>
@@ -123,39 +211,57 @@ function ListaProdutos() {
               ))}
             </tbody>
           </table>
-
+          </div>
 
           {/* Paginação */}
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
             <button
               onClick={irParaPaginaAnterior}
-              disabled={paginaAtual === 1}
-              className={`px-4 py-2 rounded ${
-                paginaAtual === 1
+              disabled={paginaAtual === 0}
+              className={`px-6 py-2 rounded-lg font-semibold ${
+                paginaAtual === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
-              Anterior
+              ← Anterior
             </button>
-            <span className="text-gray-700">
-              Página {paginaAtual} de {totalPaginas}
+            <span className="text-gray-700 font-medium">
+              Página {paginaAtual + 1} de {totalPaginas}
             </span>
             <button
               onClick={irParaProximaPagina}
-              disabled={paginaAtual === totalPaginas}
-              className={`px-4 py-2 rounded ${
-                paginaAtual === totalPaginas
+              disabled={paginaAtual === totalPaginas - 1}
+              className={`px-6 py-2 rounded-lg font-semibold ${
+                paginaAtual === totalPaginas - 1
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
-              Próxima
+              Próxima →
             </button>
           </div>
+        </>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && produtos.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Nenhum produto encontrado</p>
+          {busca && (
+            <button
+              onClick={() => {
+                setBusca("");
+                buscarProdutos(0, "", ordenacao);
+              }}
+              className="mt-4 text-blue-600 hover:text-blue-700 underline"
+            >
+              Limpar busca
+            </button>
+          )}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

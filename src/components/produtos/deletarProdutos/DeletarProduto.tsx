@@ -1,25 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-
 import Produto from '../../../models/produtos/Produto'
-import { buscar, deletar } from '../../../services/Services'
+import produtoService from '../../../services/produto.service'
 import { RotatingLines } from 'react-loader-spinner'
 
 function DeletarProduto() {
-
     const [produto, setProduto] = useState<Produto>({} as Produto)
-
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
     const navigate = useNavigate()
-
     const { id } = useParams<{ id: string }>()
 
     async function buscarPorId(id: string) {
         try {
-            await buscar(`/produtos/${id}`, setProduto)
+            const produtoData = await produtoService.buscarPorId(Number(id));
+            setProduto(produtoData);
         } catch (error: any) {
-
+            console.error('Erro ao buscar produto:', error);
             alert('Erro ao buscar Produto')
         }
     }
@@ -35,16 +31,14 @@ function DeletarProduto() {
     }
 
     async function deletarProduto() {
-
         setIsLoading(true)
 
         try {
-            await deletar(`/produtos/${id}`)
-
+            await produtoService.deletar(Number(id));
             alert('Produto apagado com sucesso')
-
-        } catch (error) {
-            alert('Erro ao apagar o Produto')
+        } catch (error: any) {
+            console.error('Erro ao deletar produto:', error);
+            alert(error.response?.data?.message || 'Erro ao apagar o Produto')
         }
 
         setIsLoading(false)
