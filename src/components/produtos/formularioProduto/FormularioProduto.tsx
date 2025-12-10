@@ -102,7 +102,7 @@ function FormularioProduto() {
   }
 
   function atualizarEstado(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
     const { name, value } = e.target;
     setProduto({ ...produto, [name]: value });
@@ -151,18 +151,18 @@ function FormularioProduto() {
   }
 
   return (
-    <div className="container mx-auto my-8 max-w-5xl px-4">
-      <h1 className="text-3xl text-center font-bold mb-6">
-        {id ? "Editar Produto" : "Cadastrar Produto"}
+    <div className="container mx-auto my-8 max-w-5xl px-4 bg-neutral-950 min-h-screen py-12">
+      <h1 className="heading-gamer heading-xl text-center mb-8 text-glow-primary">
+        {id ? "Editar Jogo" : "Cadastrar Jogo"}
       </h1>
       <form
-        className="bg-white p-6 rounded-lg shadow-lg grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="card-gaming p-8 grid grid-cols-1 md:grid-cols-2 gap-6"
         onSubmit={gerarNovoProduto}
       >
         {/* Nome */}
-        <div className="flex flex-col">
-          <label htmlFor="nome" className="text-gray-700 font-medium">
-            Nome
+        <div>
+          <label htmlFor="nome" className="label-gaming block mb-2">
+            Nome do Jogo
           </label>
           <input
             type="text"
@@ -170,20 +170,18 @@ function FormularioProduto() {
             id="nome"
             value={produto.nome}
             onChange={atualizarEstado}
-            placeholder="Nome do Produto"
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.nome
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            placeholder="Nome do Jogo"
+            className={`input-gaming w-full ${
+              errors.nome ? "input-error" : ""
             }`}
           />
-          {errors.nome && <p className="text-red-500 text-sm">{errors.nome}</p>}
+          {errors.nome && <p className="body-sm text-error-400 mt-1">{errors.nome}</p>}
         </div>
 
         {/* Preço */}
-        <div className="flex flex-col">
-          <label htmlFor="preco" className="text-gray-700 font-medium">
-            Preço
+        <div>
+          <label htmlFor="preco" className="label-gaming block mb-2">
+            Preço (R$)
           </label>
           <input
             type="number"
@@ -191,44 +189,46 @@ function FormularioProduto() {
             id="preco"
             value={produto.preco}
             onChange={atualizarEstado}
-            placeholder="Preço"
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.preco
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            placeholder="0.00"
+            step="0.01"
+            className={`input-gaming w-full ${
+              errors.preco ? "input-error" : ""
             }`}
           />
           {errors.preco && (
-            <p className="text-red-500 text-sm">{errors.preco}</p>
+            <p className="body-sm text-error-400 mt-1">{errors.preco}</p>
           )}
         </div>
 
         {/* Plataforma */}
-        <div className="flex flex-col">
-          <label htmlFor="plataforma" className="text-gray-700 font-medium">
+        <div>
+          <label htmlFor="plataforma" className="label-gaming block mb-2">
             Plataforma
           </label>
-          <input
-            type="text"
+          <select
             name="plataforma"
             id="plataforma"
             value={produto.plataforma}
             onChange={atualizarEstado}
-            placeholder="Plataforma"
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.plataforma
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            className={`select-gaming w-full ${
+              errors.plataforma ? "input-error" : ""
             }`}
-          />
+          >
+            <option value="">Selecione a plataforma</option>
+            <option value="PC">PC</option>
+            <option value="PlayStation 5">PlayStation 5</option>
+            <option value="Xbox Series X/S">Xbox Series X/S</option>
+            <option value="Nintendo Switch">Nintendo Switch</option>
+            <option value="Mobile">Mobile</option>
+          </select>
           {errors.plataforma && (
-            <p className="text-red-500 text-sm">{errors.plataforma}</p>
+            <p className="body-sm text-error-400 mt-1">{errors.plataforma}</p>
           )}
         </div>
 
         {/* Estoque */}
-        <div className="flex flex-col">
-          <label htmlFor="estoque" className="text-gray-700 font-medium">
+        <div>
+          <label htmlFor="estoque" className="label-gaming block mb-2">
             Estoque
           </label>
           <input
@@ -237,22 +237,21 @@ function FormularioProduto() {
             id="estoque"
             value={produto.estoque}
             onChange={atualizarEstado}
-            placeholder="Estoque"
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.estoque
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            placeholder="Quantidade em estoque"
+            min="0"
+            className={`input-gaming w-full ${
+              errors.estoque ? "input-error" : ""
             }`}
           />
           {errors.estoque && (
-            <p className="text-red-500 text-sm">{errors.estoque}</p>
+            <p className="body-sm text-error-400 mt-1">{errors.estoque}</p>
           )}
         </div>
 
         {/* URLs Imagens */}
-        <div className="col-span-full flex flex-col">
-          <label htmlFor="imagens" className="text-gray-700 font-medium">
-            Imagens
+        <div className="col-span-full">
+          <label htmlFor="imagens" className="label-gaming block mb-2">
+            URLs das Imagens
           </label>
           <input
             type="text"
@@ -260,75 +259,83 @@ function FormularioProduto() {
             id="imagens"
             value={produto.imagens.join(", ")}
             onChange={atualizarImagens}
-            placeholder="URLs das Imagens separadas por vírgula"
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.imagens
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            placeholder="https://exemplo.com/imagem1.jpg, https://exemplo.com/imagem2.jpg"
+            className={`input-gaming w-full ${
+              errors.imagens ? "input-error" : ""
             }`}
           />
+          <p className="body-sm text-neutral-400 mt-1">Separe múltiplas URLs por vírgula</p>
           {errors.imagens && (
-            <p className="text-red-500 text-sm">{errors.imagens}</p>
+            <p className="body-sm text-error-400 mt-1">{errors.imagens}</p>
           )}
         </div>
 
         {/* Descrição */}
-        <div className="col-span-full flex flex-col">
-          <label htmlFor="descricao" className="text-gray-700 font-medium">
-            Descrição
+        <div className="col-span-full">
+          <label htmlFor="descricao" className="label-gaming block mb-2">
+            Descrição do Jogo
           </label>
           <textarea
             name="descricao"
             id="descricao"
             value={produto.descricao}
             onChange={atualizarEstado}
-            placeholder="Descrição do produto"
-            rows={3}
-            className={`border rounded p-2 focus:ring-2 ${
-              errors.descricao
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
+            placeholder="Descreva o jogo, sua história, gameplay e características..."
+            rows={4}
+            className={`textarea-gaming w-full ${
+              errors.descricao ? "input-error" : ""
             }`}
           />
           {errors.descricao && (
-            <p className="text-red-500 text-sm">{errors.descricao}</p>
+            <p className="body-sm text-error-400 mt-1">{errors.descricao}</p>
           )}
         </div>
 
         {/* Ativo */}
-        <div className="col-span-full flex items-center">
-          <input
-            type="checkbox"
-            name="ativo"
-            id="ativo"
-            checked={produto.ativo}
-            onChange={(e) =>
-              setProduto({ ...produto, ativo: e.target.checked })
-            }
-            className="mr-2"
-          />
-          <label htmlFor="ativo" className="text-gray-700 font-medium">
-            Produto ativo
+        <div className="col-span-full">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="ativo"
+              id="ativo"
+              checked={produto.ativo}
+              onChange={(e) =>
+                setProduto({ ...produto, ativo: e.target.checked })
+              }
+              className="checkbox-gaming"
+            />
+            <span className="body-base text-neutral-300">Jogo ativo na loja</span>
           </label>
         </div>
 
         {/* Botão de envio */}
-        <div className="col-span-full flex justify-center">
+        <div className="col-span-full flex gap-4 pt-4">
           <button
             type="submit"
-            className="w-full md:w-1/2 bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition"
+            disabled={isLoading}
+            className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
           >
             {isLoading ? (
-              <RotatingLines
-                strokeColor="white"
-                strokeWidth="5"
-                animationDuration="0.75"
-                width="24"
-                visible={true}
-              />
+              <>
+                <RotatingLines
+                  strokeColor="white"
+                  strokeWidth="5"
+                  animationDuration="0.75"
+                  width="24"
+                  visible={true}
+                />
+                <span className="ml-2 cta-gaming">Salvando...</span>
+              </>
             ) : (
-              <span>{id ? "Atualizar" : "Cadastrar"}</span>
+              <span className="cta-gaming">{id ? "Atualizar Jogo" : "Cadastrar Jogo"}</span>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/produtos')}
+            className="btn-outline flex-1"
+          >
+            <span className="cta-gaming">Cancelar</span>
           </button>
         </div>
       </form>

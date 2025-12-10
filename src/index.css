@@ -2,5 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-
+/* 🎮 Gaming Typography Base */
+@layer base {
+  * {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
   
+  body {
+    @apply bg-neutral-950 text-neutral-0 font-gaming;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-gaming font-semibold;
+    letter-spacing: -0.025em;
+  }
+  
+  .font-accent {
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* 🎨 Typography Utilities */
+@layer components {
+  /* Headings */
+  .heading-gamer {
+    @apply font-accent font-bold uppercase tracking-wider text-neutral-0;
+    text-shadow: 0 0 8px rgba(0, 135, 255, 0.3);
+  }
+  
+  .heading-xl { @apply text-4xl leading-tight; }
+  .heading-lg { @apply text-3xl leading-tight; }
+  .heading-md { @apply text-2xl leading-snug; }
+  .heading-sm { @apply text-xl leading-snug; }
+  
+  /* Body Text */
+  .body-xl { @apply text-lg leading-relaxed text-neutral-200; }
+  .body-lg { @apply text-base leading-relaxed text-neutral-200; }
+  .body-base { @apply text-sm leading-relaxed text-neutral-300; }
+  .body-sm { @apply text-xs leading-normal text-neutral-400; }
+  
+  /* Gaming Specific */
+  .price-gaming {
+    @apply font-accent font-black text-accent-400;
+    text-shadow: 0 0 6px rgba(0, 255, 75, 0.4);
+  }
+  
+  .label-gaming {
+    @apply font-gaming font-medium text-xs uppercase tracking-wide text-neutral-400;
+  }
+  
+  .badge-gaming {
+    @apply font-accent font-bold text-xs uppercase tracking-wider;
+  }
+  
+  .cta-gaming {
+    @apply font-accent font-bold uppercase tracking-wide;
+  }
+  
+  /* Text Glow Effects */
+  .text-glow-primary {
+    text-shadow: 0 0 8px rgba(0, 135, 255, 0.6);
+  }
+  
+  .text-glow-accent {
+    text-shadow: 0 0 8px rgba(0, 255, 75, 0.6);
+  }
+  
+  .text-glow-secondary {
+    text-shadow: 0 0 8px rgba(135, 0, 255, 0.6);
+  }
+  
+  /* Gaming Components */
+  .btn-gaming {
+    @apply px-6 py-3 font-accent font-bold uppercase tracking-wide rounded-gaming transition-all duration-300;
+    letter-spacing: 0.05em;
+  }
+  
+  .btn-primary {
+    @apply btn-gaming bg-gradient-gaming text-white shadow-glow-md hover:shadow-glow-lg transform hover:scale-105;
+  }
+  
+  .btn-accent {
+    @apply btn-gaming bg-accent-500 text-neutral-900 shadow-glow-neon hover:bg-accent-400;
+  }
+  
+  .btn-outline {
+    @apply btn-gaming border-2 border-primary-500 text-primary-400 hover:bg-primary-500 hover:text-white;
+  }
+  
+  .card-gaming {
+    @apply bg-gradient-card rounded-card shadow-card-gaming border border-neutral-800 hover:border-primary-500 transition-all duration-300;
+  }
+  
+  /* Form Elements */
+  .input-gaming {
+    @apply bg-neutral-900 border border-neutral-700 rounded-gaming px-4 py-3 text-neutral-100 font-gaming;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all;
+    @apply placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .select-gaming {
+    @apply bg-neutral-900 border border-neutral-700 rounded-gaming px-4 py-3 text-neutral-100 font-gaming;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed appearance-none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23A3A3A3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+  }
+  
+  .textarea-gaming {
+    @apply bg-neutral-900 border border-neutral-700 rounded-gaming px-4 py-3 text-neutral-100 font-gaming;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all;
+    @apply placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none;
+    min-height: 100px;
+  }
+  
+  .checkbox-gaming {
+    @apply w-4 h-4 text-primary-500 bg-neutral-900 border-neutral-700 rounded focus:ring-primary-500 focus:ring-2;
+  }
+  
+  .radio-gaming {
+    @apply w-4 h-4 text-primary-500 bg-neutral-900 border-neutral-700 focus:ring-primary-500 focus:ring-2;
+  }
+  
+  /* Input States */
+  .input-error {
+    @apply border-error-500 focus:border-error-500 focus:ring-error-500/20;
+  }
+  
+  .input-success {
+    @apply border-success-500 focus:border-success-500 focus:ring-success-500/20;
+  }
+}

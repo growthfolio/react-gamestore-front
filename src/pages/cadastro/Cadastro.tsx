@@ -84,29 +84,34 @@ function Cadastro() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh] bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+    <div className="flex justify-center items-center min-h-[80vh] bg-neutral-950 py-12 px-4">
+      <div className="max-w-md w-full card-gaming p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Criar Conta</h2>
-          <p className="text-gray-600 mt-2">Cadastre-se gratuitamente</p>
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-gaming rounded-lg flex items-center justify-center">
+              <span className="font-accent font-bold text-white">G</span>
+            </div>
+          </div>
+          <h2 className="heading-gamer heading-lg text-glow-primary mb-2">Criar Conta</h2>
+          <p className="body-lg text-neutral-300">Junte-se à comunidade gamer</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {erro && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {erro}
+            <div className="bg-error-500/10 border border-error-500/30 text-error-400 px-4 py-3 rounded-gaming">
+              <span className="body-base">{erro}</span>
             </div>
           )}
 
           {sucesso && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-              Cadastro realizado com sucesso! Redirecionando...
+            <div className="bg-success-500/10 border border-success-500/30 text-success-400 px-4 py-3 rounded-gaming">
+              <span className="body-base">Cadastro realizado com sucesso! Redirecionando...</span>
             </div>
           )}
 
           <div>
-            <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-2">
-              Nome *
+            <label htmlFor="nome" className="label-gaming block mb-2">
+              Nome Completo *
             </label>
             <input
               type="text"
@@ -114,15 +119,15 @@ function Cadastro() {
               name="nome"
               value={formData.nome}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input-gaming w-full"
               placeholder="Digite seu nome completo"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="usuario" className="block text-sm font-medium text-gray-700 mb-2">
-              Usuário *
+            <label htmlFor="usuario" className="label-gaming block mb-2">
+              Nome de Usuário *
             </label>
             <input
               type="text"
@@ -130,14 +135,14 @@ function Cadastro() {
               name="usuario"
               value={formData.usuario}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Digite um nome de usuário"
+              className="input-gaming w-full"
+              placeholder="Digite um nome de usuário único"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="senha" className="label-gaming block mb-2">
               Senha *
             </label>
             <input
@@ -146,14 +151,14 @@ function Cadastro() {
               name="senha"
               value={formData.senha}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Digite uma senha (min. 6 caracteres)"
+              className="input-gaming w-full"
+              placeholder="Mínimo 6 caracteres"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirmarSenha" className="label-gaming block mb-2">
               Confirmar Senha *
             </label>
             <input
@@ -162,15 +167,15 @@ function Cadastro() {
               name="confirmarSenha"
               value={formData.confirmarSenha}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Confirme sua senha"
+              className="input-gaming w-full"
+              placeholder="Digite a senha novamente"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="foto" className="block text-sm font-medium text-gray-700 mb-2">
-              URL da Foto (opcional)
+            <label htmlFor="foto" className="label-gaming block mb-2">
+              Avatar (Opcional)
             </label>
             <input
               type="text"
@@ -178,8 +183,8 @@ function Cadastro() {
               name="foto"
               value={formData.foto}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="https://exemplo.com/foto.jpg"
+              className="input-gaming w-full"
+              placeholder="https://exemplo.com/avatar.jpg"
               disabled={isLoading}
             />
           </div>
@@ -187,7 +192,7 @@ function Cadastro() {
           <button
             type="submit"
             disabled={isLoading || sucesso}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -198,18 +203,18 @@ function Cadastro() {
                   width="24"
                   visible={true}
                 />
-                <span className="ml-2">Cadastrando...</span>
+                <span className="ml-2 cta-gaming">Cadastrando...</span>
               </>
             ) : (
-              'Cadastrar'
+              <span className="cta-gaming">Criar Conta</span>
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
+        <div className="mt-8 text-center">
+          <p className="body-base text-neutral-400">
             Já tem uma conta?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+            <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
               Faça login
             </Link>
           </p>

@@ -7,42 +7,44 @@ interface CardProdutoProps {
 
 function CardProdutos({ produto }: CardProdutoProps) {
   return (
-    <div className="flex items-center justify-between border-b border-gray-300 py-4 px-6 hover:bg-gray-100 transition-colors">
-      {/* Coluna: Tipo */}
-      <div className="flex-1 text-gray-700 font-medium">
-        <span>{produto.nome}</span>
-      </div>
+    <div className="card-gaming p-6 mb-4">
+      <div className="flex items-center justify-between">
+        {/* Nome do Jogo */}
+        <div className="flex-1">
+          <h3 className="heading-sm text-primary-400 mb-1">{produto.nome}</h3>
+          <p className="body-base text-neutral-400 line-clamp-2">
+            {produto.descricao || "Sem descrição"}
+          </p>
+        </div>
 
-      {/* Coluna: Descrição */}
-      <div className="flex-1 text-gray-500">
-        <span>{produto.descricao || "Sem descrição"}</span>
-      </div>
+        {/* Status */}
+        <div className="flex-shrink-0 mx-6">
+          <span
+            className={`badge-gaming px-3 py-1 rounded-full ${
+              produto.ativo 
+                ? "bg-success-500 text-white" 
+                : "bg-error-500 text-white"
+            }`}
+          >
+            {produto.ativo ? "ATIVO" : "INATIVO"}
+          </span>
+        </div>
 
-      {/* Coluna: Status */}
-      <div className="flex-1 text-center">
-        <span
-          className={`px-3 py-1 rounded-full text-sm ${
-            produto.ativo ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}
-        >
-          {produto.ativo ? "Ativo" : "Inativo"}
-        </span>
-      </div>
-
-      {/* Coluna: Ações */}
-      <div className="flex gap-2">
-        <Link
-          to={`/editarProduto/${produto.id}`}
-          className="text-blue-500 hover:text-blue-700 transition-colors text-sm"
-        >
-          Editar
-        </Link>
-        <Link
-          to={`/deletarProduto/${produto.id}`}
-          className="text-red-500 hover:text-red-700 transition-colors text-sm"
-        >
-          Deletar
-        </Link>
+        {/* Ações */}
+        <div className="flex gap-3">
+          <Link
+            to={`/editarProduto/${produto.id}`}
+            className="body-sm text-primary-400 hover:text-primary-300 transition-colors font-medium"
+          >
+            Editar
+          </Link>
+          <Link
+            to={`/deletarProduto/${produto.id}`}
+            className="body-sm text-error-500 hover:text-error-400 transition-colors font-medium"
+          >
+            Deletar
+          </Link>
+        </div>
       </div>
     </div>
   );

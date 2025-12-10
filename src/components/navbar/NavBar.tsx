@@ -17,29 +17,34 @@ function NavBar() {
 
   return (
     <>
-      <div className="w-full bg-gray-800 text-gray-100 shadow-lg">
+      <div className="w-full bg-neutral-950 border-b border-neutral-800 shadow-card-gaming">
         <div className="container mx-auto flex justify-between items-center py-4 px-6">
           {/* Logo */}
           <Link
             to="/home"
-            className="text-2xl font-bold uppercase text-white-500 hover:text-gray-400 transition-colors"
+            className="flex items-center space-x-3 group"
           >
-            Energy Games
+            <div className="w-10 h-10 bg-gradient-gaming rounded-lg flex items-center justify-center group-hover:shadow-glow-md transition-all">
+              <span className="font-accent font-bold text-white">G</span>
+            </div>
+            <span className="heading-sm text-glow-primary group-hover:text-primary-300 transition-colors">
+              Game<span className="text-primary-400">Store</span>
+            </span>
           </Link>
 
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
             <Link
               to="/home"
-              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+              className="body-lg hover:text-primary-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
             >
               Home
             </Link>
             <Link
               to="/produtos"
-              className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+              className="body-lg hover:text-accent-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
             >
-              Produtos
+              Jogos
             </Link>
 
             {/* Admin Links */}
@@ -47,27 +52,27 @@ function NavBar() {
               <>
                 <Link
                   to="/cadastrarProduto"
-                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  Cad. Produto
+                  <span className="cta-gaming text-xs">Cad. Jogo</span>
                 </Link>
                 <Link
                   to="/categorias"
-                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  Categorias
+                  <span className="cta-gaming text-xs">Categorias</span>
                 </Link>
                 <Link
                   to="/cadastrarCategoria"
-                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  Cad. Categoria
+                  <span className="cta-gaming text-xs">Nova Cat.</span>
                 </Link>
                 <Link
                   to="/admin/igdb"
-                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  IGDB
+                  <span className="cta-gaming text-xs">IGDB</span>
                 </Link>
               </>
             )}
@@ -78,12 +83,12 @@ function NavBar() {
                 {/* Favoritos */}
                 <Link
                   to="/favoritos"
-                  className="relative hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg transition-all flex items-center gap-2"
+                  className="relative hover:text-accent-400 py-2 px-3 rounded-gaming transition-all flex items-center hover:bg-neutral-800"
                   title="Favoritos"
                 >
                   <Heart size={22} weight="bold" />
                   {totalFavoritos > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-accent-500 text-neutral-900 label-gaming rounded-full h-5 w-5 flex items-center justify-center shadow-glow-neon">
                       {totalFavoritos}
                     </span>
                   )}
@@ -92,12 +97,12 @@ function NavBar() {
                 {/* Carrinho */}
                 <Link
                   to="/carrinho"
-                  className="relative hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg transition-all flex items-center gap-2"
+                  className="relative hover:text-primary-400 py-2 px-3 rounded-gaming transition-all flex items-center hover:bg-neutral-800"
                   title="Carrinho"
                 >
                   <ShoppingCart size={22} weight="bold" />
                   {totalItens > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-primary-500 text-white label-gaming rounded-full h-5 w-5 flex items-center justify-center shadow-glow-sm">
                       {totalItens}
                     </span>
                   )}
@@ -106,17 +111,17 @@ function NavBar() {
                 {/* Perfil */}
                 <Link
                   to="/perfil"
-                  className="hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg transition-all flex items-center gap-2"
+                  className="hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all flex items-center gap-2 hover:bg-neutral-800"
                   title={usuario?.nome}
                 >
                   <UserCircle size={22} weight="bold" />
-                  <span className="hidden md:inline">{usuario?.nome.split(' ')[0]}</span>
+                  <span className="hidden md:inline body-sm">{usuario?.nome.split(' ')[0]}</span>
                 </Link>
 
                 {/* Logout */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white py-2 px-4 rounded-lg transition-all"
+                  className="flex items-center justify-center hover:text-error-500 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                   aria-label="Sair"
                   title="Sair"
                 >
@@ -126,10 +131,10 @@ function NavBar() {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition-all"
+                className="btn-accent flex items-center gap-2 px-4 py-2"
               >
-                <SignIn size={22} weight="bold" />
-                <span>Entrar</span>
+                <SignIn size={20} weight="bold" />
+                <span className="cta-gaming text-sm">Entrar</span>
               </Link>
             )}
           </div>

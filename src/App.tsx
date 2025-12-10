@@ -16,6 +16,9 @@ import DetalheProduto from './pages/detalheProduto/DetalheProduto';
 import Favoritos from './pages/favoritos/Favoritos';
 import Carrinho from './pages/carrinho/Carrinho';
 import AdminIGDB from './pages/admin/igdb/AdminIGDB';
+import BrandingDemo from './pages/BrandingDemo';
+import TypographyDemo from './pages/TypographyDemo';
+import FormDemo from './components/forms/FormDemo';
 
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
@@ -45,6 +48,9 @@ function App() {
                 <Route path="/produtos/:id" element={<DetalheProduto />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
+                <Route path="/branding" element={<BrandingDemo />} />
+                <Route path="/typography" element={<TypographyDemo />} />
+                <Route path="/forms" element={<FormDemo />} />
 
                 {/* Rotas Protegidas - Admin */}
                 <Route

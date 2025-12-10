@@ -49,22 +49,27 @@ function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh] bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+    <div className="flex justify-center items-center min-h-[80vh] bg-neutral-950 py-12 px-4">
+      <div className="max-w-md w-full card-gaming p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Entrar</h2>
-          <p className="text-gray-600 mt-2">Acesse sua conta</p>
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-gaming rounded-lg flex items-center justify-center">
+              <span className="font-accent font-bold text-white">G</span>
+            </div>
+          </div>
+          <h2 className="heading-gamer heading-lg text-glow-primary mb-2">Entrar</h2>
+          <p className="body-lg text-neutral-300">Acesse sua conta gamer</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {erro && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {erro}
+            <div className="bg-error-500/10 border border-error-500/30 text-error-400 px-4 py-3 rounded-gaming">
+              <span className="body-base">{erro}</span>
             </div>
           )}
 
           <div>
-            <label htmlFor="usuario" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="usuario" className="label-gaming block mb-2">
               Usuário
             </label>
             <input
@@ -73,14 +78,14 @@ function Login() {
               name="usuario"
               value={formData.usuario}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input-gaming w-full"
               placeholder="Digite seu usuário"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="senha" className="label-gaming block mb-2">
               Senha
             </label>
             <input
@@ -89,7 +94,7 @@ function Login() {
               name="senha"
               value={formData.senha}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input-gaming w-full"
               placeholder="Digite sua senha"
               disabled={isLoading}
             />
@@ -98,7 +103,7 @@ function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -109,18 +114,18 @@ function Login() {
                   width="24"
                   visible={true}
                 />
-                <span className="ml-2">Entrando...</span>
+                <span className="ml-2 cta-gaming">Entrando...</span>
               </>
             ) : (
-              'Entrar'
+              <span className="cta-gaming">Entrar</span>
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
+        <div className="mt-8 text-center">
+          <p className="body-base text-neutral-400">
             Não tem uma conta?{' '}
-            <Link to="/cadastro" className="text-blue-600 hover:text-blue-700 font-semibold">
+            <Link to="/cadastro" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
               Cadastre-se
             </Link>
           </p>

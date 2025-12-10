@@ -9,26 +9,111 @@
     width: 100%;
     max-width: 1440px;
     margin: 0 auto;
-  }
+}
   
- .title-slider { 
+.title-slider { 
     text-align: center;
     margin: 24px 0;
-  }
+}
 
-  .slide-item{
+.slide-item{
     width: 100%;
     height: 700px;
     object-fit: cover;
-  }
+}
 
-  .swiper-pagination-bullet-active {
+/* Swiper customization */
+.swiper-pagination-bullet-active {
     background: rgb(239 68 68) !important;
-  }
-  .swiper-button-next, .swiper-button-prev {
+}
+
+.swiper-button-next, .swiper-button-prev {
     color: rgb(239 68 68) !important;
-  }
+    background: rgba(255, 255, 255, 0.9);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
 
-  .swiper-pagination-progressbar-fill {
+.swiper-button-next:after, .swiper-button-prev:after {
+    font-size: 20px;
+}
+
+.swiper-pagination-progressbar-fill {
     background: rgb(239 68 68) !important;
-  }
+}
+
+/* Animações */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.8s ease-out;
+}
+
+/* Line clamp para textos */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .slide-item {
+        height: 400px;
+    }
+    
+    .swiper-button-next, .swiper-button-prev {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .swiper-button-next:after, .swiper-button-prev:after {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    .slide-item {
+        height: 300px;
+    }
+}
+
+/* Skeleton loading */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hover effects */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
