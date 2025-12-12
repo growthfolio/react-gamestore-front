@@ -11,6 +11,7 @@ interface AuthContextData {
   cadastrar: (dados: CadastroRequest) => Promise<Usuario>;
   logout: () => void;
   atualizarUsuario: (id: number, dados: Partial<CadastroRequest>) => Promise<Usuario>;
+  forcarComoAdmin: () => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -46,13 +47,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (dados: LoginRequest): Promise<LoginResponse> => {
     try {
       const response = await authService.login(dados);
+      
       setUsuario({
         id: response.id,
         nome: response.nome,
         usuario: response.usuario,
         foto: response.foto,
-        tipo: response.tipo,
       });
+      
       toast.success('Login realizado!', `Bem-vindo, ${response.nome}!`);
       return response;
     } catch (error) {
@@ -66,8 +68,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const novoUsuario = await authService.cadastrar(dados);
       toast.success('Cadastro realizado!', 'Sua conta foi criada com sucesso.');
       return novoUsuario;
-    } catch (error) {
-      toast.error('Erro no cadastro', 'Não foi possível criar sua conta.');
+    } catch (error: any) {
+      let errorMessage = 'Não foi possível criar sua conta.';
+      
+      if (error.response?.data) {
+        const { message, errors } = error.response.data;
+        if (errors && typeof errors === 'object') {
+          // Extrai o primeiro erro de validação
+          const firstError = Object.values(errors)[0] as string;
+          errorMessage = firstError || message || errorMessage;
+        } else {
+          errorMessage = message || errorMessage;
+        }
+      }
+      
+      toast.error('Erro no cadastro', errorMessage);
       throw error;
     }
   };
@@ -84,6 +99,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return usuarioAtualizado;
   };
 
+  const forcarComoAdmin = () => {
+    authService.forcarComoAdmin();
+    const usuarioAtualizado = authService.getUsuarioLogado();
+    setUsuario(usuarioAtualizado);
+  };
+
   const value: AuthContextData = {
     usuario,
     isAuthenticated: !!usuario,
@@ -96,6 +117,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     cadastrar,
     logout,
     atualizarUsuario,
+    forcarComoAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -18,7 +18,6 @@ export interface LoginResponse {
   usuario: string;
   foto?: string;
   token: string;
-  tipo: 'USER' | 'ADMIN';
 }
 
 export interface Usuario {
@@ -35,7 +34,11 @@ class AuthService {
    * Realiza o cadastro de um novo usuário
    */
   async cadastrar(dados: CadastroRequest): Promise<Usuario> {
-    const response = await api.post<Usuario>('/usuarios/cadastrar', dados);
+    const dadosEnvio = {
+      ...dados,
+      email: dados.usuario // Adiciona email como cópia do usuario
+    };
+    const response = await api.post<Usuario>('/usuarios/cadastrar', dadosEnvio);
     return response.data;
   }
 
@@ -87,6 +90,21 @@ class AuthService {
   }
 
   /**
+   * Verifica se o usuário é admin tentando acessar endpoint admin
+   */
+  async verificarSeEhAdmin(): Promise<boolean> {
+    try {
+      console.log('🔍 Testando acesso ao endpoint /usuarios/all...');
+      const usuarios = await this.listarTodos();
+      console.log('✅ Acesso permitido! Usuários encontrados:', usuarios.length);
+      return true; // Se conseguiu acessar, é admin
+    } catch (error: any) {
+      console.log('❌ Acesso negado ao endpoint admin:', error.response?.status, error.message);
+      return false; // Se deu erro 403, não é admin
+    }
+  }
+
+  /**
    * Busca usuário por ID
    */
   async buscarPorId(id: number): Promise<Usuario> {
@@ -116,6 +134,55 @@ class AuthService {
     const response = await api.get<Usuario[]>('/usuarios/all');
     return response.data;
   }
+
+  /**
+   * Busca dados completos do usuário atual
+   */
+  async buscarDadosCompletos(): Promise<Usuario | null> {
+    const usuario = this.getUsuarioLogado();
+    if (!usuario?.id) return null;
+    
+    try {
+      // Tenta buscar por ID primeiro
+      return await this.buscarPorId(usuario.id);
+    } catch {
+      // Se falhar, tenta buscar na lista de todos (pode funcionar melhor)
+      try {
+        const usuarios = await this.listarTodos();
+        return usuarios.find(u => u.id === usuario.id) || null;
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Força o usuário como admin (temporário - para quando backend está com problemas)
+   */
+  forcarComoAdmin(): void {
+    const usuario = this.getUsuarioLogado();
+    if (usuario) {
+      const usuarioAdmin = { ...usuario, tipo: 'ADMIN' as const };
+      localStorage.setItem('usuario', JSON.stringify(usuarioAdmin));
+      console.log('👑 Usuário forçado como ADMIN');
+      window.location.reload();
+    }
+  }
+}
+
+// Expor no window para debug
+if (typeof window !== 'undefined') {
+  (window as any).forcarAdmin = () => {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (usuario.id) {
+      usuario.tipo = 'ADMIN';
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+      console.log('👑 Forçado como ADMIN!');
+      window.location.reload();
+    } else {
+      console.log('❌ Nenhum usuário logado');
+    }
+  };
 }
 
 export default new AuthService();

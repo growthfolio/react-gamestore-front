@@ -1,61 +1,62 @@
 import api from './api';
-import Produto from '../models/produtos/Produto';
 
-export interface CarrinhoItemRequest {
+export interface CarrinhoRequest {
   produtoId: number;
   quantidade: number;
 }
 
 export interface CarrinhoItem {
   id: number;
-  produto: Produto;
+  produtoId: number;
+  produtoNome: string;
+  produtoImagem: string;
+  plataforma: string;
+  precoUnitario: number;
+  descontoUnitario: number;
+  precoComDesconto: number;
   quantidade: number;
   subtotal: number;
+  disponivelEstoque: boolean;
+  estoqueDisponivel: number;
+  dataAdicionado: string;
 }
 
-export interface Carrinho {
+export interface CarrinhoResumo {
   itens: CarrinhoItem[];
-  total: number;
   totalItens: number;
+  totalProdutos: number;
+  subtotal: number;
+  descontoTotal: number;
+  total: number;
 }
 
 class CarrinhoService {
-  /**
-   * Busca carrinho do usuário logado
-   */
-  async buscar(): Promise<Carrinho> {
-    const response = await api.get<Carrinho>('/carrinho');
+  async obterResumo(): Promise<CarrinhoResumo> {
+    const response = await api.get<CarrinhoResumo>('/carrinho');
     return response.data;
   }
 
-  /**
-   * Adiciona item ao carrinho
-   */
-  async adicionarItem(dados: CarrinhoItemRequest): Promise<CarrinhoItem> {
-    const response = await api.post<CarrinhoItem>('/carrinho/item', dados);
-    return response.data;
+  async adicionar(dados: CarrinhoRequest): Promise<void> {
+    await api.post('/carrinho', dados);
   }
 
-  /**
-   * Atualiza quantidade de um item
-   */
-  async atualizarItem(itemId: number, quantidade: number): Promise<CarrinhoItem> {
-    const response = await api.put<CarrinhoItem>(`/carrinho/item/${itemId}`, { quantidade });
-    return response.data;
+  async atualizarQuantidade(produtoId: number, quantidade: number): Promise<void> {
+    await api.patch(`/carrinho/produto/${produtoId}`, null, {
+      params: { quantidade }
+    });
   }
 
-  /**
-   * Remove item do carrinho
-   */
-  async removerItem(itemId: number): Promise<void> {
-    await api.delete(`/carrinho/item/${itemId}`);
+  async removerItem(produtoId: number): Promise<void> {
+    await api.delete(`/carrinho/produto/${produtoId}`);
   }
 
-  /**
-   * Limpa todo o carrinho
-   */
   async limpar(): Promise<void> {
     await api.delete('/carrinho');
+  }
+
+  async contarItens(): Promise<number> {
+    const response = await api.get<number>('/carrinho/contagem');
+    return response.data;
   }
 }
 

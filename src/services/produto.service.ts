@@ -1,21 +1,4 @@
 import api from './api';
-import Produto from '../models/produtos/Produto';
-
-export interface PaginationParams {
-  page?: number;
-  size?: number;
-  sort?: string;
-}
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-  first: boolean;
-  last: boolean;
-}
 
 export interface ProdutoRequest {
   nome: string;
@@ -24,70 +7,82 @@ export interface ProdutoRequest {
   desconto?: number;
   estoque: number;
   plataforma: string;
-  categoriaId: number;
   desenvolvedor: string;
   publisher: string;
-  dataLancamento: Date;
+  dataLancamento: string;
+  imagens?: string[];
+  categoriaId: number;
+}
+
+export interface Produto {
+  id: number;
+  nome: string;
+  descricao: string;
+  preco: number;
+  precoComDesconto: number;
+  desconto: number;
+  estoque: number;
+  emEstoque: boolean;
+  plataforma: string;
+  desenvolvedor: string;
+  publisher: string;
+  dataLancamento: string;
   imagens: string[];
   ativo: boolean;
+  categoria: {
+    id: number;
+    tipo: string;
+    icone: string;
+  };
+  mediaAvaliacoes: number;
+  totalAvaliacoes: number;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }
 
 class ProdutoService {
-  /**
-   * Lista produtos com paginação
-   */
-  async listar(params?: PaginationParams): Promise<PaginatedResponse<Produto>> {
+  async listar(params?: {
+    nome?: string;
+    categoriaId?: number;
+    page?: number;
+    size?: number;
+    sort?: string;
+  }): Promise<PaginatedResponse<Produto>> {
     const response = await api.get<PaginatedResponse<Produto>>('/produtos', { params });
     return response.data;
   }
 
-  /**
-   * Busca produto por ID
-   */
   async buscarPorId(id: number): Promise<Produto> {
     const response = await api.get<Produto>(`/produtos/${id}`);
     return response.data;
   }
 
-  /**
-   * Busca produtos por nome
-   */
-  async buscarPorNome(nome: string, params?: PaginationParams): Promise<PaginatedResponse<Produto>> {
+  async buscar(nome: string, page = 0, size = 20): Promise<PaginatedResponse<Produto>> {
     const response = await api.get<PaginatedResponse<Produto>>('/produtos/buscar', {
-      params: { nome, ...params },
+      params: { nome, page, size }
     });
     return response.data;
   }
 
-  /**
-   * Busca produtos por categoria
-   */
-  async buscarPorCategoria(categoriaId: number, params?: PaginationParams): Promise<PaginatedResponse<Produto>> {
-    const response = await api.get<PaginatedResponse<Produto>>(`/produtos/categoria/${categoriaId}`, {
-      params,
-    });
-    return response.data;
-  }
-
-  /**
-   * Cria novo produto (apenas admin)
-   */
   async criar(dados: ProdutoRequest): Promise<Produto> {
     const response = await api.post<Produto>('/produtos', dados);
     return response.data;
   }
 
-  /**
-   * Atualiza produto (apenas admin)
-   */
-  async atualizar(id: number, dados: Partial<ProdutoRequest>): Promise<Produto> {
+  async atualizar(id: number, dados: ProdutoRequest): Promise<Produto> {
     const response = await api.put<Produto>(`/produtos/${id}`, dados);
     return response.data;
   }
 
-  /**
-   * Deleta produto (apenas admin)
-   */
   async deletar(id: number): Promise<void> {
     await api.delete(`/produtos/${id}`);
   }

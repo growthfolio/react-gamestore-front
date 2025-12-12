@@ -36,10 +36,10 @@ import DeletarProduto from './components/produtos/deletarProdutos/DeletarProduto
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <CarrinhoProvider>
-          <FavoritosProvider>
-            <ToastProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <CarrinhoProvider>
+            <FavoritosProvider>
               <Navbar />
               <div className="min-h-[80vh]">
               <Routes>
@@ -133,10 +133,10 @@ function App() {
               </Routes>
               </div>
               <Footer />
-            </ToastProvider>
-          </FavoritosProvider>
-        </CarrinhoProvider>
-      </AuthProvider>
+            </FavoritosProvider>
+          </CarrinhoProvider>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

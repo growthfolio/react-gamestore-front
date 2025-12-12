@@ -1,15 +1,15 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import carrinhoService, { Carrinho, CarrinhoItemRequest } from '../services/carrinho.service';
+import carrinhoService, { CarrinhoResumo, CarrinhoRequest } from '../services/carrinho.service';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 
 interface CarrinhoContextData {
-  carrinho: Carrinho | null;
+  carrinho: CarrinhoResumo | null;
   itens: any[];
   isLoading: boolean;
-  adicionarItem: (dados: CarrinhoItemRequest) => Promise<void>;
-  atualizarItem: (itemId: number, quantidade: number) => Promise<void>;
-  removerItem: (itemId: number) => Promise<void>;
+  adicionarItem: (dados: CarrinhoRequest) => Promise<void>;
+  atualizarItem: (produtoId: number, quantidade: number) => Promise<void>;
+  removerItem: (produtoId: number) => Promise<void>;
   limparCarrinho: () => Promise<void>;
   recarregarCarrinho: () => Promise<void>;
   totalItens: number;
@@ -32,7 +32,7 @@ interface CarrinhoProviderProps {
 export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
   const { isAuthenticated } = useAuth();
   const toast = useToast();
-  const [carrinho, setCarrinho] = useState<Carrinho | null>(null);
+  const [carrinho, setCarrinho] = useState<CarrinhoResumo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Carrega carrinho ao autenticar
@@ -49,19 +49,21 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
     
     try {
       setIsLoading(true);
-      const carrinhoData = await carrinhoService.buscar();
+      const carrinhoData = await carrinhoService.obterResumo();
       setCarrinho(carrinhoData);
     } catch (error) {
       console.error('Erro ao carregar carrinho:', error);
+      // Falha silenciosa - não quebra a aplicação
+      setCarrinho(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const adicionarItem = async (dados: CarrinhoItemRequest) => {
+  const adicionarItem = async (dados: CarrinhoRequest) => {
     try {
       setIsLoading(true);
-      await carrinhoService.adicionarItem(dados);
+      await carrinhoService.adicionar(dados);
       await recarregarCarrinho();
       toast.success('Item adicionado!', 'Produto foi adicionado ao carrinho.');
     } catch (error) {
@@ -73,10 +75,10 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
     }
   };
 
-  const atualizarItem = async (itemId: number, quantidade: number) => {
+  const atualizarItem = async (produtoId: number, quantidade: number) => {
     try {
       setIsLoading(true);
-      await carrinhoService.atualizarItem(itemId, quantidade);
+      await carrinhoService.atualizarQuantidade(produtoId, quantidade);
       await recarregarCarrinho();
     } catch (error) {
       console.error('Erro ao atualizar item:', error);
@@ -86,10 +88,10 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
     }
   };
 
-  const removerItem = async (itemId: number) => {
+  const removerItem = async (produtoId: number) => {
     try {
       setIsLoading(true);
-      await carrinhoService.removerItem(itemId);
+      await carrinhoService.removerItem(produtoId);
       await recarregarCarrinho();
       toast.success('Item removido!', 'Produto foi removido do carrinho.');
     } catch (error) {

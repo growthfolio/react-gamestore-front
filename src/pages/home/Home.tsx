@@ -7,10 +7,8 @@ import 'swiper/css/navigation';
 import 'swiper/css/effect-fade';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
-import produtoService from '../../services/produto.service';
-import categoriaService from '../../services/categoria.service';
-import Produto from '../../models/produtos/Produto';
-import Categoria from '../../models/categorias/Categoria';
+import produtoService, { Produto } from '../../services/produto.service';
+import categoriaService, { Categoria } from '../../services/categoria.service';
 import { ShoppingCart, GameController, Heart, Star, ArrowUp, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
@@ -53,18 +51,37 @@ function Home() {
     const carregarDados = async () => {
         try {
             setLoading(true);
+            
+            // Carrega produtos e categorias separadamente para evitar falha total
+            const produtosPromise = produtoService.listar({ page: 0, size: 12, sort: 'nome,asc' })
+                .catch(err => {
+                    console.error('Erro ao carregar produtos:', err);
+                    return { content: [] };
+                });
+                
+            const categoriasPromise = categoriaService.listar()
+                .catch(err => {
+                    console.error('Erro ao carregar categorias:', err);
+                    return { content: [] };
+                });
+            
             const [produtosResponse, categoriasResponse] = await Promise.all([
-                produtoService.listar({ page: 0, size: 12, sort: 'nome,asc' }),
-                categoriaService.listar()
+                produtosPromise,
+                categoriasPromise
             ]);
             
-            const produtos = produtosResponse.content;
+            const produtos = produtosResponse.content || [];
             setProdutosDestaque(produtos.slice(0, 8));
             setProdutosOfertas(produtos.filter(p => p.desconto && p.desconto > 0).slice(0, 4));
             setProdutosLancamentos(produtos.slice(8, 16));
-            setCategorias(categoriasResponse.slice(0, 6));
+            setCategorias(categoriasResponse.content?.slice(0, 6) || []);
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
+            // Falha silenciosa - define arrays vazios
+            setProdutosDestaque([]);
+            setProdutosOfertas([]);
+            setProdutosLancamentos([]);
+            setCategorias([]);
         } finally {
             setLoading(false);
         }
@@ -407,7 +424,7 @@ function Home() {
                             >
                                 <div className="aspect-square bg-gradient-gaming p-6 flex flex-col items-center justify-center text-white transition-all group-hover:scale-105 group-hover:shadow-glow-md rounded-gaming">
                                     <GameController size={48} className="mb-3 group-hover:text-accent-300 transition-colors" />
-                                    <h3 className="heading-sm text-center group-hover:text-glow-primary transition-all">{categoria.nome}</h3>
+                                    <h3 className="heading-sm text-center group-hover:text-glow-primary transition-all">{categoria.tipo}</h3>
                                     <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity rounded-gaming"></div>
                                 </div>
                             </div>

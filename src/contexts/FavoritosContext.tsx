@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import favoritoService, { Favorito } from '../services/favorito.service';
+import favoritosService, { Favorito } from '../services/favoritos.service';
 import { useAuth } from './AuthContext';
 
 interface FavoritosContextData {
@@ -44,10 +44,11 @@ export const FavoritosProvider = ({ children }: FavoritosProviderProps) => {
     
     try {
       setIsLoading(true);
-      const favoritosData = await favoritoService.listar();
-      setFavoritos(favoritosData);
+      const response = await favoritosService.listar();
+      setFavoritos(response.content || []);
     } catch (error) {
       console.error('Erro ao carregar favoritos:', error);
+      setFavoritos([]);
     } finally {
       setIsLoading(false);
     }
@@ -60,9 +61,16 @@ export const FavoritosProvider = ({ children }: FavoritosProviderProps) => {
   const toggleFavorito = async (produtoId: number): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const resultado = await favoritoService.toggle(produtoId);
+      const jaEFavorito = isFavorito(produtoId);
+      
+      if (jaEFavorito) {
+        await favoritosService.remover(produtoId);
+      } else {
+        await favoritosService.adicionar(produtoId);
+      }
+      
       await recarregarFavoritos();
-      return resultado;
+      return !jaEFavorito;
     } catch (error) {
       console.error('Erro ao alternar favorito:', error);
       throw error;
