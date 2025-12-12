@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import carrinhoService, { Carrinho, CarrinhoItemRequest } from '../services/carrinho.service';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 interface CarrinhoContextData {
   carrinho: Carrinho | null;
@@ -30,6 +31,7 @@ interface CarrinhoProviderProps {
 
 export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
   const { isAuthenticated } = useAuth();
+  const toast = useToast();
   const [carrinho, setCarrinho] = useState<Carrinho | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,8 +63,10 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
       setIsLoading(true);
       await carrinhoService.adicionarItem(dados);
       await recarregarCarrinho();
+      toast.success('Item adicionado!', 'Produto foi adicionado ao carrinho.');
     } catch (error) {
       console.error('Erro ao adicionar item:', error);
+      toast.error('Erro ao adicionar', 'Não foi possível adicionar o item.');
       throw error;
     } finally {
       setIsLoading(false);
@@ -87,8 +91,10 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
       setIsLoading(true);
       await carrinhoService.removerItem(itemId);
       await recarregarCarrinho();
+      toast.success('Item removido!', 'Produto foi removido do carrinho.');
     } catch (error) {
       console.error('Erro ao remover item:', error);
+      toast.error('Erro ao remover', 'Não foi possível remover o item.');
       throw error;
     } finally {
       setIsLoading(false);

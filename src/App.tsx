@@ -7,6 +7,7 @@ import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { CarrinhoProvider } from './contexts/CarrinhoContext';
 import { FavoritosProvider } from './contexts/FavoritosContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 // Pages
 import Home from './pages/home/Home';
@@ -15,10 +16,12 @@ import Cadastro from './pages/cadastro/Cadastro';
 import DetalheProduto from './pages/detalheProduto/DetalheProduto';
 import Favoritos from './pages/favoritos/Favoritos';
 import Carrinho from './pages/carrinho/Carrinho';
+import Perfil from './pages/perfil/Perfil';
 import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 import BrandingDemo from './pages/BrandingDemo';
 import TypographyDemo from './pages/TypographyDemo';
 import FormDemo from './components/forms/FormDemo';
+import ToastDemo from './components/toast/ToastDemo';
 
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
@@ -36,8 +39,9 @@ function App() {
       <AuthProvider>
         <CarrinhoProvider>
           <FavoritosProvider>
-            <Navbar />
-            <div className="min-h-[80vh]">
+            <ToastProvider>
+              <Navbar />
+              <div className="min-h-[80vh]">
               <Routes>
                 {/* Rotas Públicas */}
                 <Route path="/" element={<Home />} />
@@ -48,9 +52,18 @@ function App() {
                 <Route path="/produtos/:id" element={<DetalheProduto />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
+                <Route 
+                  path="/perfil" 
+                  element={
+                    <ProtectedRoute>
+                      <Perfil />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/branding" element={<BrandingDemo />} />
                 <Route path="/typography" element={<TypographyDemo />} />
                 <Route path="/forms" element={<FormDemo />} />
+                <Route path="/toasts" element={<ToastDemo />} />
 
                 {/* Rotas Protegidas - Admin */}
                 <Route
@@ -118,8 +131,9 @@ function App() {
                   }
                 />
               </Routes>
-            </div>
-            <Footer />
+              </div>
+              <Footer />
+            </ToastProvider>
           </FavoritosProvider>
         </CarrinhoProvider>
       </AuthProvider>

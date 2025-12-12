@@ -27,6 +27,7 @@ export interface Usuario {
   usuario: string;
   foto?: string;
   tipo: 'USER' | 'ADMIN';
+  roles?: string[];
 }
 
 class AuthService {
@@ -80,7 +81,9 @@ class AuthService {
    */
   isAdmin(): boolean {
     const usuario = this.getUsuarioLogado();
-    return usuario?.tipo === 'ADMIN';
+    return !!(usuario?.tipo === 'ADMIN' || 
+             usuario?.roles?.includes('ROLE_ADMIN') || 
+             usuario?.roles?.includes('ADMIN'));
   }
 
   /**

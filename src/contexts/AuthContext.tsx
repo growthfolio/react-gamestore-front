@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { Usuario, LoginRequest, CadastroRequest, LoginResponse } from '../services/auth.service';
+import { useToast } from './ToastContext';
 
 interface AuthContextData {
   usuario: Usuario | null;
@@ -29,6 +30,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
 
   // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
@@ -42,25 +44,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (dados: LoginRequest): Promise<LoginResponse> => {
-    const response = await authService.login(dados);
-    setUsuario({
-      id: response.id,
-      nome: response.nome,
-      usuario: response.usuario,
-      foto: response.foto,
-      tipo: response.tipo,
-    });
-    return response;
+    try {
+      const response = await authService.login(dados);
+      setUsuario({
+        id: response.id,
+        nome: response.nome,
+        usuario: response.usuario,
+        foto: response.foto,
+        tipo: response.tipo,
+      });
+      toast.success('Login realizado!', `Bem-vindo, ${response.nome}!`);
+      return response;
+    } catch (error) {
+      toast.error('Falha no login', 'Verifique suas credenciais.');
+      throw error;
+    }
   };
 
   const cadastrar = async (dados: CadastroRequest): Promise<Usuario> => {
-    const novoUsuario = await authService.cadastrar(dados);
-    return novoUsuario;
+    try {
+      const novoUsuario = await authService.cadastrar(dados);
+      toast.success('Cadastro realizado!', 'Sua conta foi criada com sucesso.');
+      return novoUsuario;
+    } catch (error) {
+      toast.error('Erro no cadastro', 'Não foi possível criar sua conta.');
+      throw error;
+    }
   };
 
   const logout = () => {
     authService.logout();
     setUsuario(null);
+    toast.info('Logout realizado', 'Até a próxima!');
   };
 
   const atualizarUsuario = async (id: number, dados: Partial<CadastroRequest>): Promise<Usuario> => {
@@ -72,7 +87,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const value: AuthContextData = {
     usuario,
     isAuthenticated: !!usuario,
-    isAdmin: usuario?.tipo === 'ADMIN',
+    isAdmin: usuario?.tipo === 'ADMIN' || 
+             usuario?.roles?.includes('ROLE_ADMIN') || 
+             usuario?.roles?.includes('ADMIN') ||
+             authService.isAdmin(),
     isLoading,
     login,
     cadastrar,
