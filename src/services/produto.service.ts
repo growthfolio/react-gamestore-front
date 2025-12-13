@@ -1,4 +1,5 @@
 import api from './api';
+import { Produto } from '../models/produtos/Produto';
 
 export interface ProdutoRequest {
   nome: string;
@@ -14,29 +15,7 @@ export interface ProdutoRequest {
   categoriaId: number;
 }
 
-export interface Produto {
-  id: number;
-  nome: string;
-  descricao: string;
-  preco: number;
-  precoComDesconto: number;
-  desconto: number;
-  estoque: number;
-  emEstoque: boolean;
-  plataforma: string;
-  desenvolvedor: string;
-  publisher: string;
-  dataLancamento: string;
-  imagens: string[];
-  ativo: boolean;
-  categoria: {
-    id: number;
-    tipo: string;
-    icone: string;
-  };
-  mediaAvaliacoes: number;
-  totalAvaliacoes: number;
-}
+export type { Produto };
 
 export interface PaginatedResponse<T> {
   content: T[];

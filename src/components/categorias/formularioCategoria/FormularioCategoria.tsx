@@ -6,11 +6,12 @@ import { buscar, atualizar, cadastrar } from "../../../services/Services";
 
 function FormularioCategoria() {
   const [categoria, setCategoria] = useState<Categoria>({
+    id: 0,
     tipo: "",
-    nome: "",
     descricao: "",
     ativo: true,
     icone: "",
+    dataCriacao: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({

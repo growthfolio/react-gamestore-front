@@ -18,6 +18,7 @@ export interface LoginResponse {
   usuario: string;
   foto?: string;
   token: string;
+  roles: string[];
 }
 
 export interface Usuario {
@@ -47,8 +48,16 @@ class AuthService {
    */
   async login(dados: LoginRequest): Promise<LoginResponse> {
     const response = await api.post<LoginResponse>('/usuarios/logar', dados);
-    const { token, ...usuario } = response.data;
+    const { token, roles, ...usuarioData } = response.data;
     
+    const tipo = roles.includes('ROLE_ADMIN') ? 'ADMIN' : 'USER';
+
+    const usuario: Usuario = {
+        ...usuarioData,
+        tipo,
+        roles
+    };
+
     // Armazena token e dados do usuário
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(usuario));

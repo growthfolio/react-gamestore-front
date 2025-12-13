@@ -1,5 +1,6 @@
 import api from './api';
 import { PaginatedResponse } from './produto.service';
+import Categoria from '../models/categorias/Categoria';
 
 export interface CategoriaRequest {
   tipo: string;
@@ -7,14 +8,7 @@ export interface CategoriaRequest {
   icone?: string;
 }
 
-export interface Categoria {
-  id: number;
-  tipo: string;
-  descricao: string;
-  icone: string;
-  ativo: boolean;
-  dataCriacao: string;
-}
+export type { Categoria };
 
 class CategoriaService {
   async listar(params?: {

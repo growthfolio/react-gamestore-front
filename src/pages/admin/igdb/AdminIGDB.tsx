@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Download, Gamepad2, X } from 'lucide-react';
+import { MagnifyingGlass, GameController, CloudArrowDown } from '@phosphor-icons/react';
 import { useAuth } from '../../../contexts/AuthContext';
-import './AdminIGDB.css';
+import { IGDBGameTable } from '../../../components/admin/IGDBGameTable';
 
+// Interface matching the one in IGDBGameTable
 interface IGDBGame {
     id: number;
     name: string;
@@ -23,9 +24,8 @@ const AdminIGDB: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<IGDBGame[]>([]);
     const [loading, setLoading] = useState(false);
-    const [selectedGame, setSelectedGame] = useState<IGDBGame | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isAdmin) {
             navigate('/');
         }
@@ -47,7 +47,7 @@ const AdminIGDB: React.FC = () => {
             const mockResults: IGDBGame[] = [
                 {
                     id: 1,
-                    name: `${searchTerm} - Resultado 1`,
+                    name: `${searchTerm} - The Game`,
                     summary: 'Este é um jogo incrível com gráficos impressionantes e jogabilidade envolvente.',
                     cover: { url: 'https://via.placeholder.com/264x352' },
                     first_release_date: Date.now() / 1000,
@@ -57,13 +57,23 @@ const AdminIGDB: React.FC = () => {
                 },
                 {
                     id: 2,
-                    name: `${searchTerm} - Resultado 2`,
+                    name: `${searchTerm}: Origins`,
                     summary: 'Um RPG épico com história profunda e personagens memoráveis.',
                     cover: { url: 'https://via.placeholder.com/264x352' },
                     first_release_date: Date.now() / 1000,
                     platforms: [{ name: 'PC' }, { name: 'Nintendo Switch' }],
                     genres: [{ name: 'RPG' }],
                     rating: 92
+                },
+                 {
+                    id: 3,
+                    name: `Super ${searchTerm} Kart`,
+                    summary: 'Corrida alucinante com seus personagens favoritos.',
+                    cover: { url: 'https://via.placeholder.com/264x352' },
+                    first_release_date: Date.now() / 1000,
+                    platforms: [{ name: 'Nintendo Switch' }],
+                    genres: [{ name: 'Racing' }],
+                    rating: 78
                 }
             ];
 
@@ -87,7 +97,6 @@ const AdminIGDB: React.FC = () => {
             await new Promise(resolve => setTimeout(resolve, 1500));
             
             alert(`"${game.name}" importado com sucesso!`);
-            setSelectedGame(null);
         } catch (error) {
             console.error('Erro ao importar jogo:', error);
             alert('Erro ao importar jogo');
@@ -96,178 +105,92 @@ const AdminIGDB: React.FC = () => {
         }
     };
 
-    const formatDate = (timestamp?: number) => {
-        if (!timestamp) return 'N/A';
-        return new Date(timestamp * 1000).toLocaleDateString('pt-BR');
-    };
-
     if (!isAdmin) {
         return null;
     }
 
     return (
-        <div className="admin-igdb-container">
-            <div className="admin-igdb-header">
-                <Gamepad2 size={32} className="header-icon" />
-                <h1>Painel IGDB - Importação de Jogos</h1>
-                <p>Busque e importe jogos da base de dados IGDB</p>
-            </div>
-
-            {/* Busca */}
-            <div className="search-section">
-                <div className="search-box">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        placeholder="Digite o nome do jogo..."
-                        className="search-input"
-                    />
-                    <button
-                        onClick={handleSearch}
-                        disabled={loading}
-                        className="btn-search"
-                    >
-                        <Search size={20} />
-                        {loading ? 'Buscando...' : 'Buscar'}
-                    </button>
-                </div>
-            </div>
-
-            {/* Resultados */}
-            {searchResults.length > 0 && (
-                <div className="results-section">
-                    <h2>Resultados da Busca ({searchResults.length})</h2>
-                    <div className="results-grid">
-                        {searchResults.map(game => (
-                            <div
-                                key={game.id}
-                                className="game-card"
-                                onClick={() => setSelectedGame(game)}
-                            >
-                                <div className="game-cover">
-                                    <img
-                                        src={game.cover?.url || '/placeholder-game.png'}
-                                        alt={game.name}
-                                    />
-                                </div>
-                                <div className="game-info">
-                                    <h3>{game.name}</h3>
-                                    {game.rating && (
-                                        <div className="game-rating">
-                                            ⭐ {Math.round(game.rating)}/100
-                                        </div>
-                                    )}
-                                    {game.platforms && (
-                                        <div className="game-platforms">
-                                            {game.platforms.slice(0, 2).map((p, idx) => (
-                                                <span key={idx} className="platform-badge">
-                                                    {p.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+        <div className="min-h-screen bg-[#0f172a] text-white p-8 pt-24">
+            <div className="max-w-7xl mx-auto space-y-8">
+                
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyan-500/30 pb-6">
+                    <div>
+                        <h1 className="text-4xl font-bold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center gap-3">
+                            <GameController weight="duotone" />
+                            Integração IGDB
+                        </h1>
+                        <p className="text-slate-400 mt-2 font-rajdhani text-lg">
+                            Busque e importe jogos diretamente da base de dados oficial
+                        </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700">
+                        <CloudArrowDown className="text-cyan-400" size={24} />
+                        <span className="text-sm text-slate-300">
+                            Status da API: <span className="text-green-400 font-bold">Online</span>
+                        </span>
                     </div>
                 </div>
-            )}
 
-            {/* Modal de Detalhes */}
-            {selectedGame && (
-                <div className="modal-overlay" onClick={() => setSelectedGame(null)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            className="modal-close"
-                            onClick={() => setSelectedGame(null)}
-                        >
-                            <X size={24} />
-                        </button>
-
-                        <div className="modal-body">
-                            <div className="modal-cover">
-                                <img
-                                    src={selectedGame.cover?.url || '/placeholder-game.png'}
-                                    alt={selectedGame.name}
-                                />
+                {/* Search Section */}
+                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-xl backdrop-blur-sm">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <MagnifyingGlass className="text-slate-400" size={20} />
                             </div>
-
-                            <div className="modal-details">
-                                <h2>{selectedGame.name}</h2>
-
-                                {selectedGame.rating && (
-                                    <div className="detail-rating">
-                                        <span className="rating-label">Avaliação IGDB:</span>
-                                        <span className="rating-value">
-                                            ⭐ {Math.round(selectedGame.rating)}/100
-                                        </span>
-                                    </div>
-                                )}
-
-                                {selectedGame.first_release_date && (
-                                    <div className="detail-item">
-                                        <span className="detail-label">Lançamento:</span>
-                                        <span>{formatDate(selectedGame.first_release_date)}</span>
-                                    </div>
-                                )}
-
-                                {selectedGame.platforms && selectedGame.platforms.length > 0 && (
-                                    <div className="detail-item">
-                                        <span className="detail-label">Plataformas:</span>
-                                        <div className="detail-tags">
-                                            {selectedGame.platforms.map((p, idx) => (
-                                                <span key={idx} className="detail-tag">
-                                                    {p.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {selectedGame.genres && selectedGame.genres.length > 0 && (
-                                    <div className="detail-item">
-                                        <span className="detail-label">Gêneros:</span>
-                                        <div className="detail-tags">
-                                            {selectedGame.genres.map((g, idx) => (
-                                                <span key={idx} className="detail-tag">
-                                                    {g.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {selectedGame.summary && (
-                                    <div className="detail-item">
-                                        <span className="detail-label">Descrição:</span>
-                                        <p className="detail-summary">{selectedGame.summary}</p>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={() => handleImportGame(selectedGame)}
-                                    disabled={loading}
-                                    className="btn-import"
-                                >
-                                    <Download size={20} />
-                                    {loading ? 'Importando...' : 'Importar para Catálogo'}
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder="Digite o nome do jogo para buscar..."
+                                className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-slate-500 transition-all font-rajdhani text-lg"
+                            />
                         </div>
+                        <button
+                            onClick={handleSearch}
+                            disabled={loading}
+                            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-orbitron tracking-wider"
+                        >
+                            {loading ? (
+                                <>Buscando...</>
+                            ) : (
+                                <>
+                                    <MagnifyingGlass weight="bold" />
+                                    BUSCAR
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
-            )}
 
-            {/* Estado Vazio */}
-            {searchResults.length === 0 && !loading && (
-                <div className="empty-state">
-                    <Gamepad2 size={64} className="empty-icon" />
-                    <h3>Nenhuma busca realizada</h3>
-                    <p>Use a barra de busca acima para encontrar jogos no IGDB</p>
-                </div>
-            )}
+                {/* Results Section */}
+                {searchResults.length > 0 ? (
+                    <div className="space-y-4 animate-fadeIn">
+                        <h2 className="text-2xl font-orbitron text-cyan-400 flex items-center gap-2">
+                            Resultados Encontrados
+                            <span className="text-sm font-rajdhani text-slate-500 bg-slate-900 px-2 py-1 rounded-full border border-slate-800">
+                                {searchResults.length}
+                            </span>
+                        </h2>
+                        
+                        <IGDBGameTable 
+                            games={searchResults} 
+                            onImport={handleImportGame} 
+                        />
+                    </div>
+                ) : (
+                    !loading && searchTerm && (
+                        <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-xl border border-slate-800/50 border-dashed">
+                            <GameController size={48} className="mx-auto mb-4 opacity-20" />
+                            <p className="text-xl font-rajdhani">Nenhum jogo encontrado para "{searchTerm}"</p>
+                            <p className="text-sm mt-2">Tente buscar por outro nome ou verifique a ortografia.</p>
+                        </div>
+                    )
+                )}
+            </div>
         </div>
     );
 };

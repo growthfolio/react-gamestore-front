@@ -12,8 +12,8 @@ function ListaCategorias() {
 
   async function buscarCategorias() {
     try {
-      const cats = await categoriaService.listar();
-      setCategorias(cats);
+      const response = await categoriaService.listar();
+      setCategorias(response.content);
     } catch (error: any) {
       console.error("Erro ao listar categorias:", error);
       alert("Erro ao listar as categorias");

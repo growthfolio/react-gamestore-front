@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import Produto from '../../../models/produtos/Produto'
+import { Produto } from '../../../models/produtos/Produto'
 import produtoService from '../../../services/produto.service'
 import { RotatingLines } from 'react-loader-spinner'
 

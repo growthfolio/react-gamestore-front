@@ -18,14 +18,9 @@ const Carrinho: React.FC = () => {
         }
     }, [usuario, navigate]);
 
-    const calcularSubtotal = (preco: number, desconto: number | undefined, quantidade: number) => {
-        const precoFinal = desconto ? preco * (1 - desconto / 100) : preco;
-        return precoFinal * quantidade;
-    };
-
     const calcularTotal = () => {
         return itens.reduce((total: number, item: CarrinhoItem) => {
-            return total + calcularSubtotal(item.produto.preco, item.produto.desconto, item.quantidade);
+            return total + item.subtotal;
         }, 0);
     };
 
@@ -35,8 +30,8 @@ const Carrinho: React.FC = () => {
         const item = itens.find((i: CarrinhoItem) => i.id === itemId);
         if (!item) return;
 
-        if (novaQuantidade > item.produto.estoque) {
-            alert(`Quantidade máxima disponível: ${item.produto.estoque}`);
+        if (novaQuantidade > item.estoqueDisponivel) {
+            alert(`Quantidade máxima disponível: ${item.estoqueDisponivel}`);
             return;
         }
 
@@ -124,48 +119,50 @@ const Carrinho: React.FC = () => {
                             <div key={item.id} className="carrinho-item">
                                 <div 
                                     className="item-imagem"
-                                    onClick={() => handleVerDetalhes(item.produto.id)}
+                                    onClick={() => handleVerDetalhes(item.produtoId)}
                                 >
                                     <img 
-                                        src={item.produto.imagens?.[0] || '/placeholder-game.png'} 
-                                        alt={item.produto.nome}
+                                        src={item.produtoImagem || '/placeholder-game.png'} 
+                                        alt={item.produtoNome}
                                     />
-                                    {item.produto.desconto && item.produto.desconto > 0 && (
-                                        <span className="badge-desconto">-{item.produto.desconto}%</span>
+                                    {item.descontoUnitario > 0 && (
+                                        <span className="badge-desconto">
+                                            -{Math.round((item.descontoUnitario / item.precoUnitario) * 100)}%
+                                        </span>
                                     )}
                                 </div>
 
                                 <div className="item-info">
                                     <h3 
                                         className="item-nome"
-                                        onClick={() => handleVerDetalhes(item.produto.id)}
+                                        onClick={() => handleVerDetalhes(item.produtoId)}
                                     >
-                                        {item.produto.nome}
+                                        {item.produtoNome}
                                     </h3>
                                     
-                                    {item.produto.plataforma && (
-                                        <span className="item-plataforma">{item.produto.plataforma}</span>
+                                    {item.plataforma && (
+                                        <span className="item-plataforma">{item.plataforma}</span>
                                     )}
 
                                     <div className="item-preco-unitario">
-                                        {item.produto.desconto && item.produto.desconto > 0 ? (
+                                        {item.descontoUnitario > 0 ? (
                                             <>
                                                 <span className="preco-original">
-                                                    R$ {item.produto.preco.toFixed(2)}
+                                                    R$ {item.precoUnitario.toFixed(2)}
                                                 </span>
                                                 <span className="preco-unitario">
-                                                    R$ {(item.produto.preco * (1 - item.produto.desconto / 100)).toFixed(2)}
+                                                    R$ {item.precoComDesconto.toFixed(2)}
                                                 </span>
                                             </>
                                         ) : (
                                             <span className="preco-unitario">
-                                                R$ {item.produto.preco.toFixed(2)}
+                                                R$ {item.precoUnitario.toFixed(2)}
                                             </span>
                                         )}
                                     </div>
 
                                     <span className="item-estoque">
-                                        {item.produto.estoque} disponíveis
+                                        {item.estoqueDisponivel} disponíveis
                                     </span>
                                 </div>
 
@@ -181,7 +178,7 @@ const Carrinho: React.FC = () => {
                                     <button
                                         className="btn-quantidade"
                                         onClick={() => handleAtualizarQuantidade(item.id, item.quantidade + 1)}
-                                        disabled={item.quantidade >= item.produto.estoque}
+                                        disabled={item.quantidade >= item.estoqueDisponivel}
                                     >
                                         <Plus size={16} />
                                     </button>
@@ -190,11 +187,7 @@ const Carrinho: React.FC = () => {
                                 <div className="item-subtotal">
                                     <span className="subtotal-label">Subtotal:</span>
                                     <span className="subtotal-valor">
-                                        R$ {calcularSubtotal(
-                                            item.produto.preco,
-                                            item.produto.desconto,
-                                            item.quantidade
-                                        ).toFixed(2)}
+                                        R$ {item.subtotal.toFixed(2)}
                                     </span>
                                 </div>
 

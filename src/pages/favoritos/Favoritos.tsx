@@ -4,7 +4,7 @@ import { useFavoritos } from '../../contexts/FavoritosContext';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
 import produtoService from '../../services/produto.service';
-import Produto from '../../models/produtos/Produto';
+import { Produto } from '../../models/produtos/Produto';
 import { ShoppingCart, Trash2, Heart } from 'lucide-react';
 import './Favoritos.css';
 

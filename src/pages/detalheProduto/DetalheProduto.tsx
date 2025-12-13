@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Dna } from 'react-loader-spinner';
 import { ShoppingCart, Heart, Star, ArrowLeft } from '@phosphor-icons/react';
-import Produto from '../../models/produtos/Produto';
+import { Produto } from '../../models/produtos/Produto';
 import produtoService from '../../services/produto.service';
 import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/avaliacao.service';
 import { useAuth } from '../../contexts/AuthContext';

@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
 import categoriaService from "../../../services/categoria.service";
 import { PencilSimple, Trash, MagnifyingGlass } from "@phosphor-icons/react";
-import Produto from "../../../models/produtos/Produto";
+import { Produto } from "../../../models/produtos/Produto";
 import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -28,13 +28,15 @@ function ListaProdutos() {
       
       let response;
       if (termoBusca.trim()) {
-        response = await produtoService.buscarPorNome(termoBusca, {
+        response = await produtoService.listar({
+          nome: termoBusca,
           page: pagina,
           size: itensPorPagina,
           sort,
         });
       } else if (catId) {
-        response = await produtoService.buscarPorCategoria(Number(catId), {
+        response = await produtoService.listar({
+          categoriaId: Number(catId),
           page: pagina,
           size: itensPorPagina,
           sort,
@@ -61,8 +63,8 @@ function ListaProdutos() {
 
   async function carregarCategorias() {
     try {
-      const cats = await categoriaService.listar();
-      setCategorias(cats);
+      const response = await categoriaService.listar();
+      setCategorias(response.content);
     } catch (error) {
       console.error("Erro ao carregar categorias:", error);
     }
@@ -148,7 +150,7 @@ function ListaProdutos() {
             <option value="">Todas</option>
             {categorias.map(cat => (
               <option key={cat.id} value={cat.id}>
-                {cat.nome}
+                {cat.tipo}
               </option>
             ))}
           </select>

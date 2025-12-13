@@ -1,7 +1,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { RotatingLines } from "react-loader-spinner";
 import { useNavigate, useParams } from "react-router-dom";
-import Produto from "../../../models/produtos/Produto";
+import { Produto } from "../../../models/produtos/Produto";
 import produtoService from "../../../services/produto.service";
 
 function FormularioProduto() {
@@ -10,15 +10,19 @@ function FormularioProduto() {
     nome: "",
     descricao: "",
     preco: 0,
-    desconto: undefined,
+    desconto: 0,
     estoque: 0,
     plataforma: "",
-    categoriaId: 0,
+    categoria: { id: 0, tipo: "", icone: "" },
     desenvolvedor: "",
     publisher: "",
-    dataLancamento: new Date(),
+    dataLancamento: new Date().toISOString().split('T')[0],
     imagens: [],
     ativo: true,
+    mediaAvaliacoes: 0,
+    totalAvaliacoes: 0,
+    precoComDesconto: 0,
+    emEstoque: false
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -27,7 +31,7 @@ function FormularioProduto() {
     preco: "",
     estoque: "",
     plataforma: "",
-    categoriaId: "",
+    categoria: "",
     desenvolvedor: "",
     publisher: "",
     imagens: "",
@@ -57,7 +61,7 @@ function FormularioProduto() {
       preco: "",
       estoque: "",
       plataforma: "",
-      categoriaId: "",
+      categoria: "",
       desenvolvedor: "",
       publisher: "",
       imagens: "",
@@ -126,7 +130,7 @@ function FormularioProduto() {
         desconto: produto.desconto ? Number(produto.desconto) : undefined,
         estoque: Number(produto.estoque),
         plataforma: produto.plataforma,
-        categoriaId: Number(produto.categoriaId),
+        categoriaId: produto.categoria.id,
         desenvolvedor: produto.desenvolvedor,
         publisher: produto.publisher,
         dataLancamento: produto.dataLancamento,

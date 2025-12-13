@@ -36,13 +36,13 @@ function NavBar() {
           <div className="flex items-center gap-6">
             <Link
               to="/home"
-              className="body-lg hover:text-primary-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
+              className="cta-gaming text-sm hover:text-primary-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
             >
               Home
             </Link>
             <Link
               to="/produtos"
-              className="body-lg hover:text-accent-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
+              className="cta-gaming text-sm hover:text-accent-400 py-2 px-4 rounded-gaming transition-all hover:bg-neutral-800"
             >
               Jogos
             </Link>
@@ -52,27 +52,27 @@ function NavBar() {
               <>
                 <Link
                   to="/cadastrarProduto"
-                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
+                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  <span className="cta-gaming text-xs">Cad. Jogo</span>
+                  Cad. Jogo
                 </Link>
                 <Link
                   to="/categorias"
-                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
+                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  <span className="cta-gaming text-xs">Categorias</span>
+                  Categorias
                 </Link>
                 <Link
                   to="/cadastrarCategoria"
-                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
+                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  <span className="cta-gaming text-xs">Nova Cat.</span>
+                  Nova Cat.
                 </Link>
                 <Link
                   to="/admin/igdb"
-                  className="body-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
+                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
-                  <span className="cta-gaming text-xs">IGDB</span>
+                  IGDB
                 </Link>
               </>
             )}

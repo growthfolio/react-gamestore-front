@@ -1,10 +1,10 @@
 import api from './api';
-import Produto from '../models/produtos/Produto';
+import { ProdutoResumo } from '../models/produtos/Produto';
 
 export interface Favorito {
   id: number;
-  produto: Produto;
-  dataFavorito: string;
+  produto: ProdutoResumo;
+  dataAdicionado: string;
 }
 
 class FavoritoService {

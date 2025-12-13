@@ -48,11 +48,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const response = await authService.login(dados);
       
+      const tipo = response.roles.includes('ROLE_ADMIN') ? 'ADMIN' : 'USER';
+      
       setUsuario({
         id: response.id,
         nome: response.nome,
         usuario: response.usuario,
         foto: response.foto,
+        tipo,
+        roles: response.roles
       });
       
       toast.success('Login realizado!', `Bem-vindo, ${response.nome}!`);
