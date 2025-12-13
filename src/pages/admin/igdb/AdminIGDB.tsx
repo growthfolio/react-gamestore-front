@@ -17,18 +17,16 @@ const AdminIGDB: React.FC = () => {
     useEffect(() => {
         if (!isAdmin) {
             navigate('/');
+        } else {
+            // Carregar jogos populares ao iniciar
+            fetchGames();
         }
     }, [isAdmin, navigate]);
 
-    const handleSearch = async () => {
-        if (!searchTerm.trim()) {
-            warning('Campo vazio', 'Digite um termo de busca');
-            return;
-        }
-
+    const fetchGames = async (term?: string) => {
         try {
             setLoading(true);
-            const results = await IgdbService.searchGames(searchTerm);
+            const results = await IgdbService.searchGames(term);
             setSearchResults(results);
         } catch (err) {
             console.error('Erro ao buscar jogos:', err);
@@ -36,6 +34,10 @@ const AdminIGDB: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = () => {
+        fetchGames(searchTerm);
     };
 
     const handleImportGame = async (game: IgdbSearchResult) => {
@@ -128,7 +130,7 @@ const AdminIGDB: React.FC = () => {
                 {searchResults.length > 0 ? (
                     <div className="space-y-4 animate-fadeIn">
                         <h2 className="text-2xl font-orbitron text-cyan-400 flex items-center gap-2">
-                            Resultados Encontrados
+                            {searchTerm ? 'Resultados da Busca' : 'Jogos Populares'}
                             <span className="text-sm font-rajdhani text-slate-500 bg-slate-900 px-2 py-1 rounded-full border border-slate-800">
                                 {searchResults.length}
                             </span>
@@ -140,11 +142,13 @@ const AdminIGDB: React.FC = () => {
                         />
                     </div>
                 ) : (
-                    !loading && searchTerm && (
+                    !loading && (
                         <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-xl border border-slate-800/50 border-dashed">
                             <GameController size={48} className="mx-auto mb-4 opacity-20" />
-                            <p className="text-xl font-rajdhani">Nenhum jogo encontrado para "{searchTerm}"</p>
-                            <p className="text-sm mt-2">Tente buscar por outro nome ou verifique a ortografia.</p>
+                            <p className="text-xl font-rajdhani">
+                                {searchTerm ? `Nenhum jogo encontrado para "${searchTerm}"` : 'Nenhum jogo popular encontrado'}
+                            </p>
+                            <p className="text-sm mt-2">Tente buscar por outro nome ou verifique a conexão com a API.</p>
                         </div>
                     )
                 )}
