@@ -2,27 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MagnifyingGlass, GameController, CloudArrowDown } from '@phosphor-icons/react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { IGDBGameTable } from '../../../components/admin/IGDBGameTable';
-
-// Interface matching the one in IGDBGameTable
-interface IGDBGame {
-    id: number;
-    name: string;
-    summary?: string;
-    cover?: {
-        url: string;
-    };
-    first_release_date?: number;
-    platforms?: Array<{ name: string }>;
-    genres?: Array<{ name: string }>;
-    rating?: number;
-}
+import IgdbService, { IgdbSearchResult } from '../../../services/igdb.service';
 
 const AdminIGDB: React.FC = () => {
     const navigate = useNavigate();
     const { isAdmin } = useAuth();
+    const { success, error: toastError, warning } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState<IGDBGame[]>([]);
+    const [searchResults, setSearchResults] = useState<IgdbSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -33,73 +22,42 @@ const AdminIGDB: React.FC = () => {
 
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
-            alert('Digite um termo de busca');
+            warning('Campo vazio', 'Digite um termo de busca');
             return;
         }
 
         try {
             setLoading(true);
-            // TODO: Implementar chamada real à API IGDB através do backend
-            // Por enquanto, vamos simular resultados
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Simulação de resultados
-            const mockResults: IGDBGame[] = [
-                {
-                    id: 1,
-                    name: `${searchTerm} - The Game`,
-                    summary: 'Este é um jogo incrível com gráficos impressionantes e jogabilidade envolvente.',
-                    cover: { url: 'https://via.placeholder.com/264x352' },
-                    first_release_date: Date.now() / 1000,
-                    platforms: [{ name: 'PlayStation 5' }, { name: 'Xbox Series X' }],
-                    genres: [{ name: 'Action' }, { name: 'Adventure' }],
-                    rating: 85
-                },
-                {
-                    id: 2,
-                    name: `${searchTerm}: Origins`,
-                    summary: 'Um RPG épico com história profunda e personagens memoráveis.',
-                    cover: { url: 'https://via.placeholder.com/264x352' },
-                    first_release_date: Date.now() / 1000,
-                    platforms: [{ name: 'PC' }, { name: 'Nintendo Switch' }],
-                    genres: [{ name: 'RPG' }],
-                    rating: 92
-                },
-                 {
-                    id: 3,
-                    name: `Super ${searchTerm} Kart`,
-                    summary: 'Corrida alucinante com seus personagens favoritos.',
-                    cover: { url: 'https://via.placeholder.com/264x352' },
-                    first_release_date: Date.now() / 1000,
-                    platforms: [{ name: 'Nintendo Switch' }],
-                    genres: [{ name: 'Racing' }],
-                    rating: 78
-                }
-            ];
-
-            setSearchResults(mockResults);
-        } catch (error) {
-            console.error('Erro ao buscar jogos:', error);
-            alert('Erro ao buscar jogos no IGDB');
+            const results = await IgdbService.searchGames(searchTerm);
+            setSearchResults(results);
+        } catch (err) {
+            console.error('Erro ao buscar jogos:', err);
+            toastError('Erro na busca', 'Não foi possível buscar jogos no IGDB');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleImportGame = async (game: IGDBGame) => {
-        if (!window.confirm(`Importar "${game.name}" para o catálogo?`)) {
+    const handleImportGame = async (game: IgdbSearchResult) => {
+        if (!window.confirm(`Importar "${game.nome}" para o catálogo?`)) {
             return;
         }
 
         try {
             setLoading(true);
-            // TODO: Implementar importação real através do backend
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await IgdbService.importGame(game.igdbId);
             
-            alert(`"${game.name}" importado com sucesso!`);
-        } catch (error) {
-            console.error('Erro ao importar jogo:', error);
-            alert('Erro ao importar jogo');
+            success('Sucesso', `"${game.nome}" importado com sucesso!`);
+            
+            // Atualiza a lista para marcar como importado
+            setSearchResults(prev => prev.map(item => 
+                item.igdbId === game.igdbId 
+                    ? { ...item, jaImportado: true } 
+                    : item
+            ));
+        } catch (err) {
+            console.error('Erro ao importar jogo:', err);
+            toastError('Erro na importação', 'Não foi possível importar o jogo');
         } finally {
             setLoading(false);
         }

@@ -1,28 +1,18 @@
-import { Download, GameController, Star, Monitor, Calendar } from '@phosphor-icons/react';
-
-interface IGDBGame {
-    id: number;
-    name: string;
-    summary?: string;
-    cover?: {
-        url: string;
-    };
-    first_release_date?: number;
-    platforms?: Array<{ name: string }>;
-    genres?: Array<{ name: string }>;
-    rating?: number;
-}
+import { Download, GameController, Star, Monitor, Calendar, CheckCircle } from '@phosphor-icons/react';
+import { IgdbSearchResult } from '../../services/igdb.service';
 
 interface IGDBGameTableProps {
-    games: IGDBGame[];
-    onImport: (game: IGDBGame) => void;
+    games: IgdbSearchResult[];
+    onImport: (game: IgdbSearchResult) => void;
     loading?: boolean;
 }
 
 export function IGDBGameTable({ games, onImport, loading }: IGDBGameTableProps) {
-    const formatDate = (timestamp?: number) => {
-        if (!timestamp) return 'N/A';
-        return new Date(timestamp * 1000).toLocaleDateString('pt-BR');
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return 'N/A';
+        // Backend sends YYYY-MM-DD
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
     };
 
     const getRatingColor = (rating?: number) => {
@@ -65,15 +55,15 @@ export function IGDBGameTable({ games, onImport, loading }: IGDBGameTableProps) 
                 <tbody className="divide-y divide-neutral-800">
                     {games.map((game) => (
                         <tr 
-                            key={game.id} 
+                            key={game.igdbId} 
                             className="group hover:bg-neutral-800/50 transition-all duration-300"
                         >
                             <td className="p-4">
                                 <div className="w-16 h-20 rounded overflow-hidden shadow-lg relative group-hover:shadow-glow-sm transition-all">
-                                    {game.cover ? (
+                                    {game.urlCapa ? (
                                         <img 
-                                            src={game.cover.url.replace('t_thumb', 't_cover_small')} 
-                                            alt={game.name}
+                                            src={game.urlCapa} 
+                                            alt={game.nome}
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
@@ -85,33 +75,33 @@ export function IGDBGameTable({ games, onImport, loading }: IGDBGameTableProps) 
                             </td>
                             <td className="p-4">
                                 <h3 className="font-gaming font-bold text-neutral-100 text-lg mb-1 group-hover:text-primary-400 transition-colors">
-                                    {game.name}
+                                    {game.nome}
                                 </h3>
                                 <p className="text-sm text-neutral-400 line-clamp-2 font-sans">
-                                    {game.summary || 'Sem descrição disponível.'}
+                                    {game.descricao || 'Sem descrição disponível.'}
                                 </p>
                                 <div className="flex gap-2 mt-2">
-                                    {game.genres?.slice(0, 3).map((genre, idx) => (
+                                    {game.generos?.slice(0, 3).map((genre, idx) => (
                                         <span key={idx} className="text-xs px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
-                                            {genre.name}
+                                            {genre}
                                         </span>
                                     ))}
                                 </div>
                             </td>
                             <td className="p-4">
                                 <div className="flex flex-wrap gap-1">
-                                    {game.platforms?.slice(0, 4).map((plat, idx) => (
+                                    {game.plataformas?.slice(0, 4).map((plat, idx) => (
                                         <span 
                                             key={idx} 
                                             className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-neutral-900 text-accent-400 border border-neutral-800"
                                         >
                                             <Monitor size={12} />
-                                            {plat.name}
+                                            {plat}
                                         </span>
                                     ))}
-                                    {(game.platforms?.length || 0) > 4 && (
+                                    {(game.plataformas?.length || 0) > 4 && (
                                         <span className="text-xs px-2 py-1 rounded bg-neutral-800 text-neutral-400">
-                                            +{(game.platforms?.length || 0) - 4}
+                                            +{(game.plataformas?.length || 0) - 4}
                                         </span>
                                     )}
                                 </div>
@@ -127,17 +117,24 @@ export function IGDBGameTable({ games, onImport, loading }: IGDBGameTableProps) 
                             <td className="p-4 text-center">
                                 <div className="flex items-center justify-center gap-2 text-neutral-300 text-sm">
                                     <Calendar size={16} className="text-neutral-500" />
-                                    {formatDate(game.first_release_date)}
+                                    {formatDate(game.dataLancamento)}
                                 </div>
                             </td>
                             <td className="p-4 text-right">
-                                <button
-                                    onClick={() => onImport(game)}
-                                    className="btn-gaming bg-neutral-800 hover:bg-primary-600 text-primary-400 hover:text-white border border-primary-500/30 hover:border-primary-500 p-2 rounded-lg transition-all shadow-glow-sm hover:shadow-glow-md"
-                                    title="Importar Jogo"
-                                >
-                                    <Download size={20} weight="bold" />
-                                </button>
+                                {game.jaImportado ? (
+                                    <span className="flex items-center justify-end gap-1 text-green-500 font-bold text-sm">
+                                        <CheckCircle size={20} weight="fill" />
+                                        Importado
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => onImport(game)}
+                                        className="btn-gaming bg-neutral-800 hover:bg-primary-600 text-primary-400 hover:text-white border border-primary-500/30 hover:border-primary-500 p-2 rounded-lg transition-all shadow-glow-sm hover:shadow-glow-md"
+                                        title="Importar Jogo"
+                                    >
+                                        <Download size={20} weight="bold" />
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}
