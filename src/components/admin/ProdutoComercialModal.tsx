@@ -102,7 +102,7 @@ export function ProdutoComercialModal({ produto, onClose, onSave, loading }: Pro
                         label="Preço (R$)"
                         labelIcon={<CurrencyDollar className="text-accent-400" size={18} />}
                         value={preco}
-                        onChange={(e) => setPreco(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPreco(e.target.value)}
                         placeholder="59.99"
                         required
                     />
@@ -113,7 +113,7 @@ export function ProdutoComercialModal({ produto, onClose, onSave, loading }: Pro
                         label="Estoque (unidades)"
                         labelIcon={<Cube className="text-primary-400" size={18} />}
                         value={estoque.toString()}
-                        onChange={(e) => setEstoque(Math.max(0, parseInt(e.target.value) || 0))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEstoque(Math.max(0, parseInt(e.target.value) || 0))}
                         min={0}
                         required
                     />

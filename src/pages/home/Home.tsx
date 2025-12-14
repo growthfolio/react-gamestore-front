@@ -168,7 +168,7 @@ function Home() {
             className="group card-gaming overflow-hidden hover:shadow-glow-md hover:-translate-y-1 cursor-pointer relative"
             onClick={() => navigate(`/produtos/${produto.id}`)}
         >
-            <div className="relative h-64 bg-gray-100 overflow-hidden">
+            <div className="relative h-64 bg-neutral-800 overflow-hidden">
                 <img
                     src={produto.imagens?.[0] || '/placeholder-game.png'}
                     alt={produto.nome}
@@ -246,12 +246,12 @@ function Home() {
     );
 
     const SkeletonCard = () => (
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
-            <div className="h-64 bg-gray-300"></div>
+        <div className="card-gaming overflow-hidden animate-pulse">
+            <div className="h-64 bg-neutral-800"></div>
             <div className="p-4">
-                <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+                <div className="h-4 bg-neutral-700 rounded mb-2"></div>
+                <div className="h-4 bg-neutral-700 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-neutral-700 rounded w-1/2"></div>
             </div>
         </div>
     );
@@ -411,7 +411,7 @@ function Home() {
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {[...Array(6)].map((_, i) => (
-                            <div key={i} className="aspect-square bg-gray-300 rounded-lg animate-pulse"></div>
+                            <div key={i} className="aspect-square bg-neutral-800 rounded-lg animate-pulse"></div>
                         ))}
                     </div>
                 ) : (

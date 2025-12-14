@@ -22,17 +22,23 @@
     object-fit: cover;
 }
 
-/* Swiper customization */
+/* Swiper customization - using design system colors */
 .swiper-pagination-bullet-active {
-    background: rgb(239 68 68) !important;
+    background: #0087FF !important; /* primary-500 */
 }
 
 .swiper-button-next, .swiper-button-prev {
-    color: rgb(239 68 68) !important;
-    background: rgba(255, 255, 255, 0.9);
+    color: #0087FF !important; /* primary-500 */
+    background: rgba(26, 26, 26, 0.9); /* neutral-900 */
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    border: 1px solid #3a3a3a; /* neutral-700 */
+}
+
+.swiper-button-next:hover, .swiper-button-prev:hover {
+    background: #0087FF; /* primary-500 */
+    color: #ffffff !important;
 }
 
 .swiper-button-next:after, .swiper-button-prev:after {
@@ -40,7 +46,7 @@
 }
 
 .swiper-pagination-progressbar-fill {
-    background: rgb(239 68 68) !important;
+    background: #0087FF !important; /* primary-500 */
 }
 
 /* Animações */

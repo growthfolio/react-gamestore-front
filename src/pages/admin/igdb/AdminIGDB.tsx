@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MagnifyingGlass, GameController, CloudArrowDown, Package, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -16,15 +16,7 @@ const AdminIGDB: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        if (!isAdmin) {
-            navigate('/');
-        } else {
-            fetchGames();
-        }
-    }, [isAdmin, navigate]);
-
-    const fetchGames = async (term?: string, pageNum: number = 1) => {
+    const fetchGames = useCallback(async (term?: string, pageNum: number = 1) => {
         try {
             setLoading(true);
             const results = await IgdbService.searchGames(term, pageNum);
@@ -35,7 +27,15 @@ const AdminIGDB: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toastError]);
+
+    useEffect(() => {
+        if (!isAdmin) {
+            navigate('/');
+        } else {
+            fetchGames();
+        }
+    }, [isAdmin, navigate, fetchGames]);
 
     const handleSearch = () => {
         setPage(1);
@@ -115,7 +115,7 @@ const AdminIGDB: React.FC = () => {
                         <div className="flex-1">
                             <FormInput
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                                 onKeyPress={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Digite o nome do jogo para buscar..."
                                 icon={<MagnifyingGlass size={20} />}

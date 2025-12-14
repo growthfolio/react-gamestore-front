@@ -16,6 +16,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({
     error,
     icon,
     labelIcon,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     variant = 'default',
     fullWidth = true,
     className = '',
