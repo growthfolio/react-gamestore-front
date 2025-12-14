@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,7 +9,6 @@ const Carrinho = () => {
     const navigate = useNavigate();
     const { usuario } = useAuth();
     const { itens, atualizarItem, removerItem, limparCarrinho, totalItens } = useCarrinho();
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!usuario) {
@@ -65,12 +64,7 @@ const Carrinho = () => {
     };
 
     const handleFinalizarCompra = () => {
-        setLoading(true);
-        // TODO: Implementar lógica de checkout
-        setTimeout(() => {
-            alert('Funcionalidade de checkout em desenvolvimento!');
-            setLoading(false);
-        }, 1000);
+        navigate('/checkout');
     };
 
     const handleVerDetalhes = (produtoId: number) => {
@@ -273,10 +267,9 @@ const Carrinho = () => {
                             <button
                                 className="btn-accent w-full justify-center text-lg py-3 mb-6"
                                 onClick={handleFinalizarCompra}
-                                disabled={loading}
                             >
                                 <CreditCard size={20} />
-                                {loading ? 'Processando...' : 'Finalizar Compra'}
+                                Finalizar Compra
                             </button>
 
                             <div className="pt-4 border-t border-neutral-800 space-y-3">

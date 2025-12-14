@@ -19,6 +19,7 @@ import Carrinho from './pages/carrinho/Carrinho';
 import Perfil from './pages/perfil/Perfil';
 import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 import AdminProdutos from './pages/admin/produtos/AdminProdutos';
+import Checkout from './pages/checkout/Checkout';
 import BrandingDemo from './pages/BrandingDemo';
 import TypographyDemo from './pages/TypographyDemo';
 import FormDemo from './components/forms/FormDemo';
@@ -53,6 +54,14 @@ function App() {
                 <Route path="/produtos/:id" element={<DetalheProduto />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
+                <Route 
+                  path="/checkout" 
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route 
                   path="/perfil" 
                   element={
