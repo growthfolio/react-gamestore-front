@@ -63,12 +63,6 @@ function NavBar() {
                   Categorias
                 </Link>
                 <Link
-                  to="/cadastrarCategoria"
-                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
-                >
-                  Nova Cat.
-                </Link>
-                <Link
                   to="/admin/igdb"
                   className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
