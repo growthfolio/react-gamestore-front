@@ -1,14 +1,26 @@
 import { Link, useNavigate } from "react-router-dom";
-import { SignOut, SignIn, UserCircle, ShoppingCart, Heart, Package } from "@phosphor-icons/react";
+import { SignOut, SignIn, UserCircle, ShoppingCart, Heart, Package, Clock } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCarrinho } from "../../contexts/CarrinhoContext";
 import { useFavoritos } from "../../contexts/FavoritosContext";
+import { useState, useEffect } from "react";
+import ProdutoService from "../../services/produto.service";
 
 function NavBar() {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, usuario, logout } = useAuth();
   const { totalItens } = useCarrinho();
   const { totalFavoritos } = useFavoritos();
+  const [pendentesCount, setPendentesCount] = useState(0);
+
+  // Carrega contador de pendentes para admin
+  useEffect(() => {
+    if (isAdmin) {
+      ProdutoService.contarPendentes()
+        .then(count => setPendentesCount(count))
+        .catch(() => setPendentesCount(0));
+    }
+  }, [isAdmin]);
 
   const handleLogout = () => {
     logout();
@@ -61,6 +73,18 @@ function NavBar() {
                   className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
                   IGDB
+                </Link>
+                <Link
+                  to="/admin/pre-cadastros"
+                  className="relative cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800 flex items-center gap-1"
+                >
+                  <Clock size={16} weight="bold" />
+                  Pendentes
+                  {pendentesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-amber-500 text-neutral-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {pendentesCount > 99 ? '99+' : pendentesCount}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/admin/produtos"

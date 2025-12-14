@@ -56,11 +56,38 @@ const AdminIGDB: React.FC = () => {
         setGameToImport(game);
     };
 
-    const handleConfirmImport = async (comercialData: {
+    // Importação como pré-cadastro (modo padrão)
+    const handleImportPending = async () => {
+        if (!gameToImport) return;
+
+        try {
+            setImportLoading(true);
+            
+            // Apenas importa o jogo da IGDB (fica com ativo=false por padrão)
+            await IgdbService.importGame(gameToImport.igdbId);
+            
+            success('Sucesso', `"${gameToImport.nome}" importado para pré-cadastro!`);
+            
+            setSearchResults(prev => prev.map(item => 
+                item.igdbId === gameToImport.igdbId 
+                    ? { ...item, jaImportado: true } 
+                    : item
+            ));
+            
+            setGameToImport(null);
+        } catch (err) {
+            console.error('Erro ao importar jogo:', err);
+            toastError('Erro na importação', 'Não foi possível importar o jogo');
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
+    // Importação com ativação imediata
+    const handleImportActive = async (comercialData: {
         preco: number;
         estoque: number;
         desconto: number;
-        ativo: boolean;
     }) => {
         if (!gameToImport) return;
 
@@ -70,15 +97,15 @@ const AdminIGDB: React.FC = () => {
             // Primeiro importa o jogo da IGDB
             const importResult = await IgdbService.importGame(gameToImport.igdbId);
             
-            // Depois atualiza com os dados comerciais
+            // Depois atualiza com os dados comerciais e ativa
             await ProdutoService.atualizarDadosComerciais(importResult.produtoId, {
                 preco: comercialData.preco,
                 estoque: comercialData.estoque,
                 desconto: comercialData.desconto,
-                ativo: comercialData.ativo,
+                ativo: true,
             });
             
-            success('Sucesso', `"${gameToImport.nome}" importado e configurado com sucesso!`);
+            success('Sucesso', `"${gameToImport.nome}" importado e ativado com sucesso!`);
             
             setSearchResults(prev => prev.map(item => 
                 item.igdbId === gameToImport.igdbId 
@@ -217,7 +244,8 @@ const AdminIGDB: React.FC = () => {
                 <IGDBImportModal
                     game={gameToImport}
                     onClose={() => setGameToImport(null)}
-                    onConfirm={handleConfirmImport}
+                    onImportPending={handleImportPending}
+                    onImportActive={handleImportActive}
                     isLoading={importLoading}
                 />
             )}

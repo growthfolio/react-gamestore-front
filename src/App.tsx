@@ -19,6 +19,7 @@ import Carrinho from './pages/carrinho/Carrinho';
 import Perfil from './pages/perfil/Perfil';
 import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 import AdminProdutos from './pages/admin/produtos/AdminProdutos';
+import AdminPreCadastros from './pages/admin/preCadastros/AdminPreCadastros';
 import Checkout from './pages/checkout/Checkout';
 import Pedidos from './pages/pedidos/Pedidos';
 import BrandingDemo from './pages/BrandingDemo';
@@ -94,6 +95,14 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <AdminIGDB />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/pre-cadastros"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPreCadastros />
                     </ProtectedRoute>
                   }
                 />

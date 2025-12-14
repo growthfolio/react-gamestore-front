@@ -81,6 +81,29 @@ class ProdutoService {
   }
 
   /**
+   * Lista produtos pendentes de ativação (importados da IGDB, ativo=false)
+   * Usado na tela de pré-cadastros
+   */
+  async listarPendentes(params?: {
+    page?: number;
+    size?: number;
+    sort?: string;
+  }): Promise<PaginatedResponse<Produto>> {
+    const response = await api.get<PaginatedResponse<Produto>>('/admin/produtos/pendentes', { params });
+    return response.data;
+  }
+
+  /**
+   * Conta produtos pendentes de ativação (para badge no menu)
+   */
+  async contarPendentes(): Promise<number> {
+    const response = await api.get<PaginatedResponse<Produto>>('/admin/produtos/pendentes', { 
+      params: { page: 0, size: 1 } 
+    });
+    return response.data.totalElements;
+  }
+
+  /**
    * Lista produtos com filtros avançados para admin
    */
   async listarAdmin(params?: {
