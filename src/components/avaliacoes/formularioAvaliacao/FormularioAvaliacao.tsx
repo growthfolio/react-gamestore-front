@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Star } from 'lucide-react';
 import avaliacaoService from '../../../services/avaliacao.service';
 import { useAuth } from '../../../contexts/AuthContext';
-import './FormularioAvaliacao.css';
 
 interface FormularioAvaliacaoProps {
     produtoId: number;
     onAvaliacaoEnviada?: () => void;
 }
 
-const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({ 
+const FormularioAvaliacao = ({ 
     produtoId, 
     onAvaliacaoEnviada 
-}) => {
+}: FormularioAvaliacaoProps) => {
     const { usuario } = useAuth();
     const [nota, setNota] = useState(0);
     const [hoverNota, setHoverNota] = useState(0);
@@ -60,9 +59,10 @@ const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({
             setTimeout(() => {
                 setSucesso(false);
             }, 3000);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Erro ao enviar avaliação:', error);
-            setErro(error.response?.data?.message || 'Erro ao enviar avaliação');
+            const apiError = error as { response?: { data?: { message?: string } } };
+            setErro(apiError.response?.data?.message || 'Erro ao enviar avaliação');
         } finally {
             setLoading(false);
         }
@@ -73,8 +73,10 @@ const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({
             <Star
                 key={estrela}
                 size={32}
-                className={`estrela ${
-                    estrela <= (hoverNota || nota) ? 'preenchida' : ''
+                className={`cursor-pointer transition-all hover:scale-110 ${
+                    estrela <= (hoverNota || nota) 
+                        ? 'text-yellow-400 fill-yellow-400' 
+                        : 'text-neutral-600'
                 }`}
                 onClick={() => setNota(estrela)}
                 onMouseEnter={() => setHoverNota(estrela)}
@@ -85,43 +87,49 @@ const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({
 
     if (!usuario) {
         return (
-            <div className="formulario-avaliacao-container">
-                <div className="avaliacao-login-requerido">
-                    <p>Faça login para avaliar este produto</p>
+            <div className="card-gaming p-6 mt-8">
+                <div className="text-center py-4 bg-neutral-800 rounded-lg">
+                    <p className="text-neutral-400">Faça login para avaliar este produto</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="formulario-avaliacao-container">
-            <h3>Avaliar Produto</h3>
+        <div className="card-gaming p-6 mt-8">
+            <h3 className="heading-gamer text-xl text-neutral-100 mb-6">Avaliar Produto</h3>
 
             {sucesso && (
-                <div className="mensagem-sucesso">
+                <div className="bg-accent-500/10 border border-accent-500/30 text-accent-400 
+                               px-4 py-3 rounded-lg mb-4 flex items-center gap-2">
                     ✓ Avaliação enviada com sucesso!
                 </div>
             )}
 
             {erro && (
-                <div className="mensagem-erro">
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 
+                               px-4 py-3 rounded-lg mb-4">
                     {erro}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="formulario-avaliacao">
-                <div className="avaliacao-nota">
-                    <label>Sua nota:</label>
-                    <div className="estrelas-container">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                    <label className="block text-sm font-medium text-neutral-300">
+                        Sua nota:
+                    </label>
+                    <div className="flex gap-2">
                         {renderEstrelas()}
                     </div>
-                    <span className="nota-texto">
+                    <span className="text-sm text-neutral-500">
                         {nota > 0 ? `${nota} ${nota === 1 ? 'estrela' : 'estrelas'}` : 'Clique para avaliar'}
                     </span>
                 </div>
 
-                <div className="avaliacao-comentario">
-                    <label htmlFor="comentario">Seu comentário:</label>
+                <div className="space-y-2">
+                    <label htmlFor="comentario" className="block text-sm font-medium text-neutral-300">
+                        Seu comentário:
+                    </label>
                     <textarea
                         id="comentario"
                         value={comentario}
@@ -130,15 +138,19 @@ const FormularioAvaliacao: React.FC<FormularioAvaliacaoProps> = ({
                         rows={5}
                         maxLength={500}
                         required
+                        className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg
+                                   text-neutral-100 placeholder:text-neutral-500 resize-y
+                                   focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500
+                                   transition-colors"
                     />
-                    <span className="contador-caracteres">
+                    <span className="block text-right text-sm text-neutral-500">
                         {comentario.length}/500 caracteres
                     </span>
                 </div>
 
                 <button
                     type="submit"
-                    className="btn-enviar-avaliacao"
+                    className="btn-primary"
                     disabled={loading || nota === 0}
                 >
                     {loading ? 'Enviando...' : 'Enviar Avaliação'}

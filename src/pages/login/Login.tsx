@@ -2,7 +2,6 @@ import { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { RotatingLines } from 'react-loader-spinner';
-import './Login.css';
 
 function Login() {
   const navigate = useNavigate();
