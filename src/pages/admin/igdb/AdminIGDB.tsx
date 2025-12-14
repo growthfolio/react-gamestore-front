@@ -1,32 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MagnifyingGlass, GameController, CloudArrowDown } from '@phosphor-icons/react';
+import { useNavigate, Link } from 'react-router-dom';
+import { MagnifyingGlass, GameController, CloudArrowDown, Package, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { IGDBGameTable } from '../../../components/admin/IGDBGameTable';
+import { FormInput, FormButton } from '../../../components/forms';
 import IgdbService, { IgdbSearchResult } from '../../../services/igdb.service';
 
 const AdminIGDB: React.FC = () => {
     const navigate = useNavigate();
     const { isAdmin } = useAuth();
-    const { success, error: toastError, warning } = useToast();
+    const { success, error: toastError } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<IgdbSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
         if (!isAdmin) {
             navigate('/');
         } else {
-            // Carregar jogos populares ao iniciar
             fetchGames();
         }
     }, [isAdmin, navigate]);
 
-    const fetchGames = async (term?: string) => {
+    const fetchGames = async (term?: string, pageNum: number = 1) => {
         try {
             setLoading(true);
-            const results = await IgdbService.searchGames(term);
+            const results = await IgdbService.searchGames(term, pageNum);
             setSearchResults(results);
         } catch (err) {
             console.error('Erro ao buscar jogos:', err);
@@ -37,7 +38,14 @@ const AdminIGDB: React.FC = () => {
     };
 
     const handleSearch = () => {
-        fetchGames(searchTerm);
+        setPage(1);
+        fetchGames(searchTerm, 1);
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage < 1) return;
+        setPage(newPage);
+        fetchGames(searchTerm, newPage);
     };
 
     const handleImportGame = async (game: IgdbSearchResult) => {
@@ -51,7 +59,6 @@ const AdminIGDB: React.FC = () => {
             
             success('Sucesso', `"${game.nome}" importado com sucesso!`);
             
-            // Atualiza a lista para marcar como importado
             setSearchResults(prev => prev.map(item => 
                 item.igdbId === game.igdbId 
                     ? { ...item, jaImportado: true } 
@@ -70,68 +77,70 @@ const AdminIGDB: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#0f172a] text-white p-8 pt-24">
+        <div className="min-h-screen bg-neutral-950 text-neutral-0 p-8 pt-24">
             <div className="max-w-7xl mx-auto space-y-8">
                 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyan-500/30 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-primary-500/30 pb-6">
                     <div>
-                        <h1 className="text-4xl font-bold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center gap-3">
-                            <GameController weight="duotone" />
+                        <h1 className="heading-gamer heading-xl text-glow-primary flex items-center gap-3">
+                            <GameController weight="duotone" className="text-primary-400" />
                             Integração IGDB
                         </h1>
-                        <p className="text-slate-400 mt-2 font-rajdhani text-lg">
+                        <p className="body-lg text-neutral-400 mt-2">
                             Busque e importe jogos diretamente da base de dados oficial
                         </p>
                     </div>
                     
-                    <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700">
-                        <CloudArrowDown className="text-cyan-400" size={24} />
-                        <span className="text-sm text-slate-300">
-                            Status da API: <span className="text-green-400 font-bold">Online</span>
-                        </span>
+                    <div className="flex items-center gap-4">
+                        <Link 
+                            to="/admin/produtos"
+                            className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-gaming border border-neutral-700 hover:border-primary-500/50 transition-all"
+                        >
+                            <Package className="text-accent-400" size={20} />
+                            <span className="text-sm font-gaming text-neutral-300">Gerenciar Produtos</span>
+                        </Link>
+                        <div className="flex items-center gap-2 bg-neutral-900/50 px-4 py-2 rounded-gaming border border-neutral-800">
+                            <CloudArrowDown className="text-primary-400" size={24} />
+                            <span className="text-sm text-neutral-400">
+                                API: <span className="text-accent-500 font-bold">Online</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Search Section */}
-                <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-xl backdrop-blur-sm">
+                <div className="card-gaming p-6">
                     <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <MagnifyingGlass className="text-slate-400" size={20} />
-                            </div>
-                            <input
-                                type="text"
+                        <div className="flex-1">
+                            <FormInput
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                onKeyPress={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Digite o nome do jogo para buscar..."
-                                className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-slate-500 transition-all font-rajdhani text-lg"
+                                icon={<MagnifyingGlass size={20} />}
+                                disabled={loading}
                             />
                         </div>
-                        <button
+                        <FormButton
                             onClick={handleSearch}
-                            disabled={loading}
-                            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-orbitron tracking-wider"
+                            loading={loading}
+                            loadingText="Buscando..."
+                            icon={<MagnifyingGlass weight="bold" size={20} />}
+                            variant="primary"
+                            size="md"
                         >
-                            {loading ? (
-                                <>Buscando...</>
-                            ) : (
-                                <>
-                                    <MagnifyingGlass weight="bold" />
-                                    BUSCAR
-                                </>
-                            )}
-                        </button>
+                            BUSCAR
+                        </FormButton>
                     </div>
                 </div>
 
                 {/* Results Section */}
                 {searchResults.length > 0 ? (
-                    <div className="space-y-4 animate-fadeIn">
-                        <h2 className="text-2xl font-orbitron text-cyan-400 flex items-center gap-2">
+                    <div className="space-y-4">
+                        <h2 className="heading-gamer heading-sm text-primary-400 flex items-center gap-2">
                             {searchTerm ? 'Resultados da Busca' : 'Jogos Populares'}
-                            <span className="text-sm font-rajdhani text-slate-500 bg-slate-900 px-2 py-1 rounded-full border border-slate-800">
+                            <span className="badge-gaming text-neutral-500 bg-neutral-900 px-2 py-1 rounded-full border border-neutral-800">
                                 {searchResults.length}
                             </span>
                         </h2>
@@ -140,15 +149,41 @@ const AdminIGDB: React.FC = () => {
                             games={searchResults} 
                             onImport={handleImportGame} 
                         />
+
+                        {/* Pagination Controls */}
+                        <div className="flex justify-center items-center gap-4 mt-6 pb-8">
+                            <FormButton
+                                onClick={() => handlePageChange(page - 1)}
+                                disabled={page === 1 || loading}
+                                variant="ghost"
+                                size="md"
+                                icon={<CaretLeft size={20} />}
+                            >
+                                ANTERIOR
+                            </FormButton>
+                            <span className="text-neutral-400 font-gaming text-lg px-4">
+                                Página <span className="text-neutral-0 font-bold text-xl">{page}</span>
+                            </span>
+                            <FormButton
+                                onClick={() => handlePageChange(page + 1)}
+                                disabled={loading || searchResults.length < 20}
+                                variant="ghost"
+                                size="md"
+                                icon={<CaretRight size={20} />}
+                                iconPosition="right"
+                            >
+                                PRÓXIMO
+                            </FormButton>
+                        </div>
                     </div>
                 ) : (
                     !loading && (
-                        <div className="text-center py-12 text-slate-500 bg-slate-900/30 rounded-xl border border-slate-800/50 border-dashed">
+                        <div className="text-center py-12 text-neutral-500 bg-neutral-900/30 rounded-card border border-neutral-800/50 border-dashed">
                             <GameController size={48} className="mx-auto mb-4 opacity-20" />
-                            <p className="text-xl font-rajdhani">
+                            <p className="text-xl font-gaming">
                                 {searchTerm ? `Nenhum jogo encontrado para "${searchTerm}"` : 'Nenhum jogo popular encontrado'}
                             </p>
-                            <p className="text-sm mt-2">Tente buscar por outro nome ou verifique a conexão com a API.</p>
+                            <p className="text-sm mt-2 body-sm">Tente buscar por outro nome ou verifique a conexão com a API.</p>
                         </div>
                     )
                 )}

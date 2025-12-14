@@ -65,6 +65,34 @@ class ProdutoService {
   async deletar(id: number): Promise<void> {
     await api.delete(`/produtos/${id}`);
   }
+
+  /**
+   * Atualiza dados comerciais de um produto (preço, estoque, desconto, ativo)
+   * Usado pelo admin após importar jogos da IGDB
+   */
+  async atualizarDadosComerciais(id: number, dados: {
+    preco: number;
+    estoque: number;
+    desconto?: number;
+    ativo?: boolean;
+  }): Promise<Produto> {
+    const response = await api.patch<Produto>(`/produtos/${id}/comercial`, dados);
+    return response.data;
+  }
+
+  /**
+   * Lista produtos com filtros avançados para admin
+   */
+  async listarAdmin(params?: {
+    nome?: string;
+    ativo?: boolean;
+    semEstoque?: boolean;
+    page?: number;
+    size?: number;
+  }): Promise<PaginatedResponse<Produto>> {
+    const response = await api.get<PaginatedResponse<Produto>>('/produtos', { params });
+    return response.data;
+  }
 }
 
 export default new ProdutoService();

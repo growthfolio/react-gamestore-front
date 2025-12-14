@@ -74,6 +74,12 @@ function NavBar() {
                 >
                   IGDB
                 </Link>
+                <Link
+                  to="/admin/produtos"
+                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
+                >
+                  Estoque
+                </Link>
               </>
             )}
 

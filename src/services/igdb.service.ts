@@ -22,8 +22,8 @@ export interface IgdbImportStatus {
 }
 
 class IgdbService {
-    async searchGames(nome?: string, limit: number = 20): Promise<IgdbSearchResult[]> {
-        const params: any = { limit };
+    async searchGames(nome?: string, page: number = 1, limit: number = 20): Promise<IgdbSearchResult[]> {
+        const params: any = { page, limit };
         if (nome) params.nome = nome;
         
         const response = await api.get<IgdbSearchResult[]>('/admin/igdb/search', {
