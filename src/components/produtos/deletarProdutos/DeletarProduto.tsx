@@ -14,7 +14,7 @@ function DeletarProduto() {
         try {
             const produtoData = await produtoService.buscarPorId(Number(id));
             setProduto(produtoData);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Erro ao buscar produto:', error);
             alert('Erro ao buscar Produto')
         }
@@ -36,9 +36,14 @@ function DeletarProduto() {
         try {
             await produtoService.deletar(Number(id));
             alert('Produto apagado com sucesso')
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Erro ao deletar produto:', error);
-            alert(error.response?.data?.message || 'Erro ao apagar o Produto')
+            const hasResponse = typeof error === 'object' && error !== null && 'response' in error;
+            const message =
+                hasResponse
+                    ? ((error as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao apagar o Produto')
+                    : 'Erro ao apagar o Produto';
+            alert(message);
         }
 
         setIsLoading(false)

@@ -3,20 +3,41 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import { useToast } from "../../../contexts/ToastContext";
-import { 
-  Tag, 
-  FloppyDisk, 
+import {
+  Tag,
+  FloppyDisk,
   ArrowLeft,
   TextT,
   TextAlignLeft,
-  Image
+  Image,
 } from "@phosphor-icons/react";
 
 // Lista de emojis sugeridos para categorias
 const EMOJI_SUGESTOES = [
-  "🎮", "⚔️", "🔫", "🗺️", "♟️", "🧩", "🏎️", "⚽", 
-  "🥊", "🛩️", "🍄", "👾", "👻", "🎵", "🎨", "🃏",
-  "🏰", "🎯", "🎲", "🗡️", "👆", "��", "❓", "🎱"
+  "🎮",
+  "⚔️",
+  "🔫",
+  "🗺️",
+  "♟️",
+  "🧩",
+  "🏎️",
+  "⚽",
+  "🥊",
+  "🛩️",
+  "🍄",
+  "👾",
+  "👻",
+  "🎵",
+  "🎨",
+  "🃏",
+  "🏰",
+  "🎯",
+  "🎲",
+  "🗡️",
+  "👆",
+  "��",
+  "❓",
+  "🎱",
 ];
 
 function FormularioCategoria() {
@@ -24,16 +45,16 @@ function FormularioCategoria() {
     tipo: "",
     descricao: "",
     ativo: true,
-    icone: ""
+    icone: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [errors, setErrors] = useState({
     tipo: "",
     descricao: "",
-    icone: ""
+    icone: "",
   });
-  
+
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const toast = useToast();
@@ -76,7 +97,9 @@ function FormularioCategoria() {
     return valid;
   }
 
-  function atualizarEstado(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function atualizarEstado(
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
     setCategoria({ ...categoria, [e.target.name]: e.target.value });
     // Limpa erro do campo quando usuário digita
     if (errors[e.target.name as keyof typeof errors]) {
@@ -97,15 +120,15 @@ function FormularioCategoria() {
       const dados = {
         tipo: categoria.tipo!,
         descricao: categoria.descricao || "",
-        icone: categoria.icone || ""
+        icone: categoria.icone || "",
       };
 
       if (isEditing) {
         await categoriaService.atualizar(Number(id), dados);
-        toast.success("Sucesso, "Categoria atualizada com sucesso");
+        toast.success("Sucesso", "Categoria atualizada com sucesso");
       } else {
         await categoriaService.criar(dados);
-        toast.success("Sucesso, "Categoria criada com sucesso");
+        toast.success("Sucesso", "Categoria criada com sucesso");
       }
       navigate("/categorias");
     } catch (error) {
@@ -138,7 +161,9 @@ function FormularioCategoria() {
               {isEditing ? "Editar Categoria" : "Nova Categoria"}
             </h1>
             <p className="text-neutral-400 mt-1">
-              {isEditing ? "Atualize os dados da categoria" : "Preencha os dados para criar uma nova categoria"}
+              {isEditing
+                ? "Atualize os dados da categoria"
+                : "Preencha os dados para criar uma nova categoria"}
             </p>
           </div>
         </div>
@@ -147,7 +172,10 @@ function FormularioCategoria() {
         <form onSubmit={handleSubmit} className="card-gaming p-6 space-y-6">
           {/* Tipo */}
           <div>
-            <label htmlFor="tipo" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+            <label
+              htmlFor="tipo"
+              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+            >
               <TextT size={16} />
               Nome da Categoria *
             </label>
@@ -159,8 +187,8 @@ function FormularioCategoria() {
               onChange={atualizarEstado}
               placeholder="Ex: Ação, RPG, Aventura..."
               className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none transition-colors ${
-                errors.tipo 
-                  ? "border-red-500 focus:border-red-500" 
+                errors.tipo
+                  ? "border-red-500 focus:border-red-500"
                   : "border-neutral-700 focus:border-primary-500"
               }`}
             />
@@ -171,7 +199,10 @@ function FormularioCategoria() {
 
           {/* Descrição */}
           <div>
-            <label htmlFor="descricao" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+            <label
+              htmlFor="descricao"
+              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+            >
               <TextAlignLeft size={16} />
               Descrição
             </label>
@@ -183,8 +214,8 @@ function FormularioCategoria() {
               placeholder="Descrição opcional da categoria..."
               rows={3}
               className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none resize-none transition-colors ${
-                errors.descricao 
-                  ? "border-red-500 focus:border-red-500" 
+                errors.descricao
+                  ? "border-red-500 focus:border-red-500"
                   : "border-neutral-700 focus:border-primary-500"
               }`}
             />
@@ -198,11 +229,14 @@ function FormularioCategoria() {
 
           {/* Ícone */}
           <div>
-            <label htmlFor="icone" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+            <label
+              htmlFor="icone"
+              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+            >
               <Image size={16} />
               Ícone
             </label>
-            
+
             {/* Preview do ícone */}
             <div className="flex items-center gap-4 mb-3">
               <div className="w-16 h-16 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-3xl">
@@ -218,7 +252,7 @@ function FormularioCategoria() {
                 className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
               />
             </div>
-            
+
             {/* Sugestões de emojis */}
             <div className="space-y-2">
               <p className="text-neutral-500 text-xs">Sugestões:</p>
@@ -243,10 +277,7 @@ function FormularioCategoria() {
 
           {/* Botões */}
           <div className="flex gap-4 pt-4 border-t border-neutral-800">
-            <Link
-              to="/categorias"
-              className="btn-ghost flex-1 justify-center"
-            >
+            <Link to="/categorias" className="btn-ghost flex-1 justify-center">
               Cancelar
             </Link>
             <button

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { Usuario, LoginRequest, CadastroRequest, LoginResponse } from '../services/auth.service';
 import { useToast } from './ToastContext';

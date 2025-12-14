@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 
 export interface CadastroRequest {
   nome: string;
@@ -28,6 +29,12 @@ export interface Usuario {
   foto?: string;
   tipo: 'USER' | 'ADMIN';
   roles?: string[];
+}
+
+declare global {
+  interface Window {
+    forcarAdmin: () => void;
+  }
 }
 
 class AuthService {
@@ -106,9 +113,15 @@ class AuthService {
       console.log('🔍 Testando acesso ao endpoint /usuarios/all...');
       const usuarios = await this.listarTodos();
       console.log('✅ Acesso permitido! Usuários encontrados:', usuarios.length);
-      return true; // Se conseguiu acessar, é admin
-    } catch (error: any) {
-      console.log('❌ Acesso negado ao endpoint admin:', error.response?.status, error.message);
+      return true;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.log('❌ Acesso negado ao endpoint admin:', error.response?.status, error.message);
+      } else if (error instanceof Error) {
+        console.log('❌ Acesso negado ao endpoint admin:', undefined, error.message);
+      } else {
+        console.log('❌ Acesso negado ao endpoint admin:', undefined, 'Erro desconhecido');
+      }
       return false; // Se deu erro 403, não é admin
     }
   }
@@ -174,14 +187,8 @@ class AuthService {
       const usuarioAdmin = { ...usuario, tipo: 'ADMIN' as const };
       localStorage.setItem('usuario', JSON.stringify(usuarioAdmin));
       console.log('👑 Usuário forçado como ADMIN');
-      window.location.reload();
-    }
-  }
-}
-
-// Expor no window para debug
 if (typeof window !== 'undefined') {
-  (window as any).forcarAdmin = () => {
+  window.forcarAdmin = () => {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     if (usuario.id) {
       usuario.tipo = 'ADMIN';
@@ -191,7 +198,13 @@ if (typeof window !== 'undefined') {
     } else {
       console.log('❌ Nenhum usuário logado');
     }
-  };
+  }
+}
+      window.location.reload();
+    } else {
+      console.log('❌ Nenhum usuário logado');
+    }
+  }
 }
 
 export default new AuthService();

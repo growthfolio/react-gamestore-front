@@ -146,9 +146,15 @@ function FormularioProduto() {
         alert("Produto cadastrado com sucesso!");
       }
       navigate("/produtos");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao salvar produto:", error);
-      alert(error.response?.data?.message || "Erro ao salvar o produto.");
+      const mensagemErro =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : error instanceof Error
+          ? error.message
+          : "Erro ao salvar o produto.";
+      alert(mensagemErro || "Erro ao salvar o produto.");
     } finally {
       setIsLoading(false);
     }

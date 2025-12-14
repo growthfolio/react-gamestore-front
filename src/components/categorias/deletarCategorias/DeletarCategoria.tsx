@@ -18,7 +18,7 @@ function DeletarCategoria() {
     async function buscarPorId(id: string) {
         try {
             await buscar(`/categorias/${id}`, setCategoria)
-        } catch (error: any) {
+        } catch (error: unknown) {
 
             alert('Erro ao buscar Categoria')
         }
