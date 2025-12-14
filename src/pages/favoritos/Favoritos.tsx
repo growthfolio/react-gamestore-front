@@ -49,10 +49,10 @@ const Favoritos = () => {
     const handleAdicionarCarrinho = async (produto: Produto) => {
         try {
             await adicionarItem({ produtoId: produto.id, quantidade: 1 });
-            alert(`${produto.nome} adicionado ao carrinho!`);
+            // Toast já é exibido pelo CarrinhoContext
         } catch (error) {
             console.error('Erro ao adicionar ao carrinho:', error);
-            alert('Erro ao adicionar produto ao carrinho');
+            // Toast já é exibido pelo CarrinhoContext
         }
     };
 

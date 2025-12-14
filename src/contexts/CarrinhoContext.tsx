@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import carrinhoService, { CarrinhoResumo, CarrinhoRequest } from '../services/carrinho.service';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
+import { getErrorMessage } from '../utils/errorHandler';
 
 interface CarrinhoContextData {
   carrinho: CarrinhoResumo | null;
@@ -68,7 +69,7 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
       toast.success('Item adicionado!', 'Produto foi adicionado ao carrinho.');
     } catch (error) {
       console.error('Erro ao adicionar item:', error);
-      toast.error('Erro ao adicionar', 'Não foi possível adicionar o item.');
+      toast.error('Erro ao adicionar', getErrorMessage(error, 'Não foi possível adicionar o item.'));
       throw error;
     } finally {
       setIsLoading(false);
@@ -96,7 +97,7 @@ export const CarrinhoProvider = ({ children }: CarrinhoProviderProps) => {
       toast.success('Item removido!', 'Produto foi removido do carrinho.');
     } catch (error) {
       console.error('Erro ao remover item:', error);
-      toast.error('Erro ao remover', 'Não foi possível remover o item.');
+      toast.error('Erro ao remover', getErrorMessage(error, 'Não foi possível remover o item.'));
       throw error;
     } finally {
       setIsLoading(false);

@@ -2,6 +2,7 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import { useToast } from "../../../contexts/ToastContext";
+import { getErrorMessage, ErrorMessages } from "../../../utils/errorHandler";
 import {
   Tag,
   FloppyDisk,
@@ -70,7 +71,7 @@ function FormularioCategoria({ categoriaId, onClose, onSaved }: FormularioCatego
       setCategoria(data);
     } catch (error) {
       console.error("Erro ao carregar categoria:", error);
-      toast.error("Erro", "Não foi possível carregar a categoria");
+      toast.error("Erro", getErrorMessage(error, ErrorMessages.loadFailed('categoria')));
       onClose();
     } finally {
       setCarregando(false);
@@ -135,7 +136,7 @@ function FormularioCategoria({ categoriaId, onClose, onSaved }: FormularioCatego
       onSaved();
     } catch (error) {
       console.error("Erro ao salvar categoria:", error);
-      toast.error("Erro", "Não foi possível salvar a categoria");
+      toast.error("Erro", getErrorMessage(error, ErrorMessages.createFailed('categoria')));
     } finally {
       setIsLoading(false);
     }

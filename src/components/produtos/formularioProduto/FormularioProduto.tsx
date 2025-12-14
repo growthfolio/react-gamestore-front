@@ -4,6 +4,7 @@ import Categoria from "../../../models/categorias/Categoria";
 import produtoService from "../../../services/produto.service";
 import categoriaService from "../../../services/categoria.service";
 import { useToast } from "../../../contexts/ToastContext";
+import { getErrorMessage, ErrorMessages } from "../../../utils/errorHandler";
 import {
   GameController,
   FloppyDisk,
@@ -74,7 +75,7 @@ function FormularioProduto({ produtoId, onClose, onSaved }: FormularioProdutoPro
       setProduto(produtoData);
     } catch (error) {
       console.error("Erro ao carregar produto:", error);
-      toast.error("Erro", "Não foi possível carregar os dados do produto");
+      toast.error("Erro", getErrorMessage(error, ErrorMessages.loadFailed('produto')));
     } finally {
       setIsLoadingData(false);
     }
@@ -167,12 +168,8 @@ function FormularioProduto({ produtoId, onClose, onSaved }: FormularioProdutoPro
       onSaved();
     } catch (error: unknown) {
       console.error("Erro ao salvar produto:", error);
-      const mensagemErro =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message
-          : "Erro ao salvar o produto";
-      toast.error("Erro", mensagemErro || "Erro ao salvar o produto");
+      const action = isEditing ? 'atualizar' : 'cadastrar';
+      toast.error("Erro", getErrorMessage(error, ErrorMessages.createFailed(`produto (${action})`)));
     } finally {
       setIsLoading(false);
     }

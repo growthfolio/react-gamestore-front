@@ -2,6 +2,7 @@ import { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { RotatingLines } from 'react-loader-spinner';
+import { getErrorMessage, ErrorMessages } from '../../utils/errorHandler';
 
 function Login() {
   const navigate = useNavigate();
@@ -39,9 +40,9 @@ function Login() {
       // Redireciona para a página anterior ou home
       const from = (location.state as any)?.from?.pathname || '/home';
       navigate(from, { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao fazer login:', error);
-      setErro(error.response?.data?.message || 'Usuário ou senha inválidos');
+      setErro(getErrorMessage(error, ErrorMessages.loginFailed));
     } finally {
       setIsLoading(false);
     }

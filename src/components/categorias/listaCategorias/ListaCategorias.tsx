@@ -3,6 +3,7 @@ import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import igdbService from "../../../services/igdb.service";
 import { useToast } from "../../../contexts/ToastContext";
+import { getErrorMessage, ErrorMessages } from "../../../utils/errorHandler";
 import FormularioCategoria from "../formularioCategoria/FormularioCategoria";
 import CardCategorias from "../cardCategorias/CardCategorias";
 import { 
@@ -29,7 +30,7 @@ function ListaCategorias() {
       setCategorias(response.content);
     } catch (error: unknown) {
       console.error("Erro ao listar categorias:", error);
-      toast.error("Erro", "Não foi possível carregar as categorias");
+      toast.error("Erro", getErrorMessage(error, ErrorMessages.loadFailed('categorias')));
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +52,7 @@ function ListaCategorias() {
       await buscarCategorias();
     } catch (error: unknown) {
       console.error("Erro ao importar gêneros:", error);
-      toast.error("Erro na importação", "Não foi possível importar os gêneros da IGDB");
+      toast.error("Erro na importação", getErrorMessage(error, 'Não foi possível importar os gêneros da IGDB'));
     } finally {
       setImportandoIgdb(false);
     }

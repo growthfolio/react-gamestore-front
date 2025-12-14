@@ -3,6 +3,7 @@ import { AlertTriangle, X, Trash2, Loader2, Gamepad2 } from 'lucide-react';
 import Categoria from '../../../models/categorias/Categoria';
 import { deletar } from '../../../services/Services';
 import { useToast } from '../../../contexts/ToastContext';
+import { getErrorMessage, ErrorMessages } from '../../../utils/errorHandler';
 
 interface DeletarCategoriaProps {
     categoria: Categoria;
@@ -22,7 +23,8 @@ function DeletarCategoria({ categoria, onClose, onDeleted }: DeletarCategoriaPro
             toast.success('Sucesso!', 'Categoria excluída com sucesso!');
             onDeleted();
         } catch (error) {
-            toast.error('Erro', 'Erro ao excluir categoria. Tente novamente.');
+            const message = getErrorMessage(error, ErrorMessages.deleteFailed('categoria'));
+            toast.error('Erro', message);
         } finally {
             setIsLoading(false);
         }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Produto } from '../../../models/produtos/Produto'
 import produtoService from '../../../services/produto.service'
 import { useToast } from '../../../contexts/ToastContext'
+import { getErrorMessage, ErrorMessages } from '../../../utils/errorHandler'
 import { Warning, Trash, X, GameController } from '@phosphor-icons/react'
 
 interface DeletarProdutoProps {
@@ -23,11 +24,7 @@ function DeletarProduto({ produto, onClose, onDeleted }: DeletarProdutoProps) {
       onDeleted();
     } catch (error: unknown) {
       console.error('Erro ao deletar produto:', error);
-      const hasResponse = typeof error === 'object' && error !== null && 'response' in error;
-      const message = hasResponse
-        ? ((error as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao excluir o produto')
-        : 'Erro ao excluir o produto';
-      toast.error('Erro', message);
+      toast.error('Erro', getErrorMessage(error, ErrorMessages.deleteFailed('produto')));
     } finally {
       setIsLoading(false);
     }

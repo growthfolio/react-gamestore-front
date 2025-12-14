@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { Usuario, LoginRequest, CadastroRequest, LoginResponse } from '../services/auth.service';
 import { useToast } from './ToastContext';
+import { getErrorMessage, ErrorMessages } from '../utils/errorHandler';
 
 interface AuthContextData {
   usuario: Usuario | null;
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       toast.success('Login realizado!', `Bem-vindo, ${response.nome}!`);
       return response;
     } catch (error) {
-      toast.error('Falha no login', 'Verifique suas credenciais.');
+      toast.error('Falha no login', getErrorMessage(error, ErrorMessages.loginFailed));
       throw error;
     }
   };
@@ -73,20 +74,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const novoUsuario = await authService.cadastrar(dados);
       toast.success('Cadastro realizado!', 'Sua conta foi criada com sucesso.');
       return novoUsuario;
-    } catch (error: any) {
-      let errorMessage = 'Não foi possível criar sua conta.';
-      
-      if (error.response?.data) {
-        const { message, errors } = error.response.data;
-        if (errors && typeof errors === 'object') {
-          // Extrai o primeiro erro de validação
-          const firstError = Object.values(errors)[0] as string;
-          errorMessage = firstError || message || errorMessage;
-        } else {
-          errorMessage = message || errorMessage;
-        }
-      }
-      
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, 'Não foi possível criar sua conta.');
       toast.error('Erro no cadastro', errorMessage);
       throw error;
     }

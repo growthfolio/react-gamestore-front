@@ -2,6 +2,7 @@ import { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { RotatingLines } from 'react-loader-spinner';
+import { getErrorMessage } from '../../utils/errorHandler';
 
 function Cadastro() {
   const navigate = useNavigate();
@@ -76,8 +77,7 @@ function Cadastro() {
       }, 2000);
     } catch (error: unknown) {
       console.error('Erro ao cadastrar:', error);
-      const apiError = error as { response?: { data?: { message?: string } } };
-      setErro(apiError.response?.data?.message || 'Erro ao cadastrar usuário');
+      setErro(getErrorMessage(error, 'Erro ao cadastrar usuário'));
     } finally {
       setIsLoading(false);
     }

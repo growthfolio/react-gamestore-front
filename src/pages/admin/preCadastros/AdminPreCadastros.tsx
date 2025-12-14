@@ -20,6 +20,7 @@ import { AtivarProdutoModal } from '../../../components/admin/AtivarProdutoModal
 import { DescartarProdutoModal } from '../../../components/admin/DescartarProdutoModal';
 import ProdutoService from '../../../services/produto.service';
 import { Produto } from '../../../models/produtos/Produto';
+import { getErrorMessage } from '../../../utils/errorHandler';
 
 const AdminPreCadastros: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const AdminPreCadastros: React.FC = () => {
       setTotalElements(response.totalElements);
     } catch (err) {
       console.error('Erro ao buscar pré-cadastros:', err);
-      toastError('Erro', 'Não foi possível carregar os pré-cadastros');
+      toastError('Erro', getErrorMessage(err, 'Não foi possível carregar os pré-cadastros'));
     } finally {
       setLoading(false);
     }
@@ -86,7 +87,7 @@ const AdminPreCadastros: React.FC = () => {
       fetchPendentes(page);
     } catch (err) {
       console.error('Erro ao ativar produto:', err);
-      toastError('Erro', 'Não foi possível ativar o produto');
+      toastError('Erro', getErrorMessage(err, 'Não foi possível ativar o produto'));
     } finally {
       setActionLoading(false);
     }
@@ -104,7 +105,7 @@ const AdminPreCadastros: React.FC = () => {
       fetchPendentes(page);
     } catch (err) {
       console.error('Erro ao descartar produto:', err);
-      toastError('Erro', 'Não foi possível descartar o produto');
+      toastError('Erro', getErrorMessage(err, 'Não foi possível descartar o produto'));
     } finally {
       setActionLoading(false);
     }

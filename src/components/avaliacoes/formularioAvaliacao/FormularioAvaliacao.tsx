@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Star } from 'lucide-react';
 import avaliacaoService from '../../../services/avaliacao.service';
 import { useAuth } from '../../../contexts/AuthContext';
+import { getErrorMessage } from '../../../utils/errorHandler';
 
 interface FormularioAvaliacaoProps {
     produtoId: number;
@@ -61,8 +62,7 @@ const FormularioAvaliacao = ({
             }, 3000);
         } catch (error: unknown) {
             console.error('Erro ao enviar avaliação:', error);
-            const apiError = error as { response?: { data?: { message?: string } } };
-            setErro(apiError.response?.data?.message || 'Erro ao enviar avaliação');
+            setErro(getErrorMessage(error, 'Erro ao enviar avaliação'));
         } finally {
             setLoading(false);
         }

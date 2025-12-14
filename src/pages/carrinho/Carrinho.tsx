@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { getErrorMessage } from '../../utils/errorHandler';
 import { CarrinhoItem } from '../../services/carrinho.service';
 import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Package, Shield, Truck } from 'lucide-react';
 
@@ -9,6 +11,7 @@ const Carrinho = () => {
     const navigate = useNavigate();
     const { usuario } = useAuth();
     const { itens, atualizarItem, removerItem, limparCarrinho, totalItens } = useCarrinho();
+    const toast = useToast();
 
     useEffect(() => {
         if (!usuario) {
@@ -29,7 +32,7 @@ const Carrinho = () => {
         if (!item) return;
 
         if (novaQuantidade > item.estoqueDisponivel) {
-            alert(`Quantidade máxima disponível: ${item.estoqueDisponivel}`);
+            toast.warning('Estoque insuficiente', `Quantidade máxima disponível: ${item.estoqueDisponivel}`);
             return;
         }
 
@@ -37,7 +40,7 @@ const Carrinho = () => {
             await atualizarItem(itemId, novaQuantidade);
         } catch (error) {
             console.error('Erro ao atualizar quantidade:', error);
-            alert('Erro ao atualizar quantidade');
+            toast.error('Erro', getErrorMessage(error, 'Erro ao atualizar quantidade'));
         }
     };
 
@@ -45,9 +48,10 @@ const Carrinho = () => {
         if (window.confirm('Deseja remover este item do carrinho?')) {
             try {
                 await removerItem(itemId);
+                // Toast já exibido pelo CarrinhoContext
             } catch (error) {
                 console.error('Erro ao remover item:', error);
-                alert('Erro ao remover item');
+                // Toast já exibido pelo CarrinhoContext
             }
         }
     };
@@ -56,9 +60,10 @@ const Carrinho = () => {
         if (window.confirm('Deseja limpar todo o carrinho?')) {
             try {
                 await limparCarrinho();
+                toast.success('Carrinho limpo', 'Todos os itens foram removidos');
             } catch (error) {
                 console.error('Erro ao limpar carrinho:', error);
-                alert('Erro ao limpar carrinho');
+                toast.error('Erro', getErrorMessage(error, 'Erro ao limpar carrinho'));
             }
         }
     };

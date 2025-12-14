@@ -8,6 +8,8 @@ import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/aval
 import { useAuth } from '../../contexts/AuthContext';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
+import { useToast } from '../../contexts/ToastContext';
+import { getErrorMessage, ErrorMessages } from '../../utils/errorHandler';
 import FormularioAvaliacao from '../../components/avaliacoes/formularioAvaliacao/FormularioAvaliacao';
 
 function DetalheProduto() {
@@ -16,6 +18,7 @@ function DetalheProduto() {
   const { isAuthenticated } = useAuth();
   const { adicionarItem } = useCarrinho();
   const { isFavorito, toggleFavorito } = useFavoritos();
+  const toast = useToast();
 
   const [produto, setProduto] = useState<Produto | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
@@ -45,7 +48,7 @@ function DetalheProduto() {
       setProduto(produtoData);
     } catch (error) {
       console.error('Erro ao carregar produto:', error);
-      alert('Erro ao carregar produto');
+      toast.error('Erro', getErrorMessage(error, ErrorMessages.loadFailed('produto')));
       navigate('/produtos');
     } finally {
       setIsLoading(false);
@@ -67,7 +70,7 @@ function DetalheProduto() {
 
   async function handleAdicionarCarrinho() {
     if (!isAuthenticated) {
-      alert('Faça login para adicionar produtos ao carrinho');
+      toast.warning('Login necessário', 'Faça login para adicionar produtos ao carrinho');
       navigate('/login');
       return;
     }
@@ -77,16 +80,16 @@ function DetalheProduto() {
         produtoId: Number(id),
         quantidade,
       });
-      alert('Produto adicionado ao carrinho!');
+      // Toast já é exibido pelo CarrinhoContext
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);
-      alert('Erro ao adicionar produto ao carrinho');
+      // Toast já é exibido pelo CarrinhoContext
     }
   }
 
   async function handleToggleFavorito() {
     if (!isAuthenticated) {
-      alert('Faça login para favoritar produtos');
+      toast.warning('Login necessário', 'Faça login para favoritar produtos');
       navigate('/login');
       return;
     }
@@ -94,9 +97,10 @@ function DetalheProduto() {
     try {
       const novoStatus = await toggleFavorito(Number(id));
       setFavorito(novoStatus);
+      toast.success(novoStatus ? 'Favoritado!' : 'Removido', novoStatus ? 'Produto adicionado aos favoritos' : 'Produto removido dos favoritos');
     } catch (error) {
       console.error('Erro ao favoritar:', error);
-      alert('Erro ao favoritar produto');
+      toast.error('Erro', getErrorMessage(error, 'Erro ao favoritar produto'));
     }
   }
 
