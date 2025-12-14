@@ -1,12 +1,34 @@
-import { useState, useEffect, ChangeEvent } from "react";
-import { RotatingLines } from "react-loader-spinner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Produto } from "../../../models/produtos/Produto";
+import Categoria from "../../../models/categorias/Categoria";
 import produtoService from "../../../services/produto.service";
+import categoriaService from "../../../services/categoria.service";
+import { useToast } from "../../../contexts/ToastContext";
+import {
+  GameController,
+  FloppyDisk,
+  X,
+  TextT,
+  CurrencyDollar,
+  Package,
+  Desktop,
+  Tag,
+  CalendarBlank,
+  Buildings,
+  Image,
+  TextAlignLeft,
+  Percent,
+  ToggleRight,
+} from "@phosphor-icons/react";
 
-function FormularioProduto() {
-  const [produto, setProduto] = useState<Produto>({
-    id: 0,
+interface FormularioProdutoProps {
+  produtoId?: number;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function FormularioProduto({ produtoId, onClose, onSaved }: FormularioProdutoProps) {
+  const [produto, setProduto] = useState<Partial<Produto>>({
     nome: "",
     descricao: "",
     preco: 0,
@@ -16,93 +38,73 @@ function FormularioProduto() {
     categoria: { id: 0, tipo: "", icone: "" },
     desenvolvedor: "",
     publisher: "",
-    dataLancamento: new Date().toISOString().split('T')[0],
+    dataLancamento: new Date().toISOString().split("T")[0],
     imagens: [],
     ativo: true,
-    mediaAvaliacoes: 0,
-    totalAvaliacoes: 0,
-    precoComDesconto: 0,
-    emEstoque: false
   });
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({
-    nome: "",
-    descricao: "",
-    preco: "",
-    estoque: "",
-    plataforma: "",
-    categoria: "",
-    desenvolvedor: "",
-    publisher: "",
-    imagens: "",
-  });
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const toast = useToast();
+
+  const isEditing = !!produtoId;
 
   useEffect(() => {
-    if (id) buscarPorId(id);
-  }, [id]);
+    carregarCategorias();
+    if (produtoId) {
+      buscarPorId(produtoId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [produtoId]);
 
-  async function buscarPorId(id: string) {
+  async function carregarCategorias() {
     try {
-      const produtoData = await produtoService.buscarPorId(Number(id));
-      setProduto(produtoData);
+      const response = await categoriaService.listar({ size: 100 });
+      setCategorias(response.content);
     } catch (error) {
-      console.error("Erro ao carregar produto:", error);
-      alert("Erro ao carregar os dados do produto.");
+      console.error("Erro ao carregar categorias:", error);
     }
   }
 
-  function validarFormulario() {
-    let valid = true;
-    const newErrors = {
-      nome: "",
-      descricao: "",
-      preco: "",
-      estoque: "",
-      plataforma: "",
-      categoria: "",
-      desenvolvedor: "",
-      publisher: "",
-      imagens: "",
-    };
+  async function buscarPorId(id: number) {
+    try {
+      setIsLoadingData(true);
+      const produtoData = await produtoService.buscarPorId(id);
+      setProduto(produtoData);
+    } catch (error) {
+      console.error("Erro ao carregar produto:", error);
+      toast.error("Erro", "Não foi possível carregar os dados do produto");
+    } finally {
+      setIsLoadingData(false);
+    }
+  }
+
+  function validarFormulario(): boolean {
+    const newErrors: Record<string, string> = {};
 
     if (!produto.nome || produto.nome.length < 3) {
-      newErrors.nome = "O nome deve ter pelo menos 3 caracteres.";
-      valid = false;
+      newErrors.nome = "O nome deve ter pelo menos 3 caracteres";
     }
 
-    if (produto.descricao && produto.descricao.length > 255) {
-      newErrors.descricao = "A descrição não pode ultrapassar 255 caracteres.";
-      valid = false;
-    }
-
-    if (produto.preco <= 0) {
-      newErrors.preco = "O preço deve ser maior que zero.";
-      valid = false;
-    }
-
-    if (produto.estoque < 0) {
-      newErrors.estoque = "O estoque não pode ser negativo.";
-      valid = false;
+    if (!produto.preco || produto.preco <= 0) {
+      newErrors.preco = "O preço deve ser maior que zero";
     }
 
     if (!produto.plataforma) {
-      newErrors.plataforma = "A plataforma é obrigatória.";
-      valid = false;
+      newErrors.plataforma = "Selecione uma plataforma";
     }
 
-    if (
-      produto.imagens.some(
-        (img) => !/^https?:\/\/.+\.(jpg|jpeg|png|svg)$/i.test(img)
-      )
-    ) {
-      newErrors.imagens = "Todas as imagens devem ser URLs válidas de imagem.";
-      valid = false;
+    if (produto.estoque !== undefined && produto.estoque < 0) {
+      newErrors.estoque = "O estoque não pode ser negativo";
+    }
+
+    if (!produto.categoria?.id) {
+      newErrors.categoria = "Selecione uma categoria";
     }
 
     setErrors(newErrors);
-    return valid;
+    return Object.keys(newErrors).length === 0;
   }
 
   function atualizarEstado(
@@ -110,245 +112,381 @@ function FormularioProduto() {
   ) {
     const { name, value } = e.target;
     setProduto({ ...produto, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+  }
+
+  function atualizarCategoria(e: ChangeEvent<HTMLSelectElement>) {
+    const categoriaId = Number(e.target.value);
+    const categoriaSelecionada = categorias.find((c) => c.id === categoriaId);
+    if (categoriaSelecionada) {
+      setProduto({ ...produto, categoria: categoriaSelecionada });
+    }
+    if (errors.categoria) {
+      setErrors({ ...errors, categoria: "" });
+    }
   }
 
   function atualizarImagens(e: ChangeEvent<HTMLInputElement>) {
-    const urls = e.target.value.split(",").map((url) => url.trim());
+    const urls = e.target.value
+      .split(",")
+      .map((url) => url.trim())
+      .filter((url) => url);
     setProduto({ ...produto, imagens: urls });
   }
 
-  async function gerarNovoProduto(e: ChangeEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!validarFormulario()) return;
 
     setIsLoading(true);
     try {
       const produtoRequest = {
-        nome: produto.nome,
-        descricao: produto.descricao,
+        nome: produto.nome!,
+        descricao: produto.descricao || "",
         preco: Number(produto.preco),
-        desconto: produto.desconto ? Number(produto.desconto) : undefined,
+        desconto: produto.desconto ? Number(produto.desconto) : 0,
         estoque: Number(produto.estoque),
-        plataforma: produto.plataforma,
-        categoriaId: produto.categoria.id,
-        desenvolvedor: produto.desenvolvedor,
-        publisher: produto.publisher,
-        dataLancamento: produto.dataLancamento,
-        imagens: produto.imagens,
-        ativo: produto.ativo,
+        plataforma: produto.plataforma!,
+        categoriaId: produto.categoria!.id,
+        desenvolvedor: produto.desenvolvedor || "",
+        publisher: produto.publisher || "",
+        dataLancamento: produto.dataLancamento || new Date().toISOString().split("T")[0],
+        imagens: produto.imagens || [],
+        ativo: produto.ativo ?? true,
       };
 
-      if (id) {
-        await produtoService.atualizar(Number(id), produtoRequest);
-        alert("Produto atualizado com sucesso!");
+      if (isEditing) {
+        await produtoService.atualizar(produtoId!, produtoRequest);
+        toast.success("Sucesso!", "Produto atualizado com sucesso");
       } else {
         await produtoService.criar(produtoRequest);
-        alert("Produto cadastrado com sucesso!");
+        toast.success("Sucesso!", "Produto cadastrado com sucesso");
       }
-      navigate("/produtos");
+      onSaved();
     } catch (error: unknown) {
       console.error("Erro ao salvar produto:", error);
       const mensagemErro =
         error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          : error instanceof Error
-          ? error.message
-          : "Erro ao salvar o produto.";
-      alert(mensagemErro || "Erro ao salvar o produto.");
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message
+          : "Erro ao salvar o produto";
+      toast.error("Erro", mensagemErro || "Erro ao salvar o produto");
     } finally {
       setIsLoading(false);
     }
   }
 
+  const PLATAFORMAS = [
+    "PC",
+    "PlayStation 5",
+    "PlayStation 4",
+    "Xbox Series X/S",
+    "Xbox One",
+    "Nintendo Switch",
+    "Mobile",
+  ];
+
+  if (isLoadingData) {
+    return (
+      <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto my-8 max-w-5xl px-4 bg-neutral-950 min-h-screen py-12">
-      <h1 className="heading-gamer heading-xl text-center mb-8 text-glow-primary">
-        {id ? "Editar Jogo" : "Cadastrar Jogo"}
-      </h1>
-      <form
-        className="card-gaming p-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-        onSubmit={gerarNovoProduto}
-      >
-        {/* Nome */}
-        <div>
-          <label htmlFor="nome" className="label-gaming block mb-2">
-            Nome do Jogo
-          </label>
-          <input
-            type="text"
-            name="nome"
-            id="nome"
-            value={produto.nome}
-            onChange={atualizarEstado}
-            placeholder="Nome do Jogo"
-            className={`input-gaming w-full ${
-              errors.nome ? "input-error" : ""
-            }`}
-          />
-          {errors.nome && <p className="body-sm text-error-400 mt-1">{errors.nome}</p>}
-        </div>
-
-        {/* Preço */}
-        <div>
-          <label htmlFor="preco" className="label-gaming block mb-2">
-            Preço (R$)
-          </label>
-          <input
-            type="number"
-            name="preco"
-            id="preco"
-            value={produto.preco}
-            onChange={atualizarEstado}
-            placeholder="0.00"
-            step="0.01"
-            className={`input-gaming w-full ${
-              errors.preco ? "input-error" : ""
-            }`}
-          />
-          {errors.preco && (
-            <p className="body-sm text-error-400 mt-1">{errors.preco}</p>
-          )}
-        </div>
-
-        {/* Plataforma */}
-        <div>
-          <label htmlFor="plataforma" className="label-gaming block mb-2">
-            Plataforma
-          </label>
-          <select
-            name="plataforma"
-            id="plataforma"
-            value={produto.plataforma}
-            onChange={atualizarEstado}
-            className={`select-gaming w-full ${
-              errors.plataforma ? "input-error" : ""
-            }`}
-          >
-            <option value="">Selecione a plataforma</option>
-            <option value="PC">PC</option>
-            <option value="PlayStation 5">PlayStation 5</option>
-            <option value="Xbox Series X/S">Xbox Series X/S</option>
-            <option value="Nintendo Switch">Nintendo Switch</option>
-            <option value="Mobile">Mobile</option>
-          </select>
-          {errors.plataforma && (
-            <p className="body-sm text-error-400 mt-1">{errors.plataforma}</p>
-          )}
-        </div>
-
-        {/* Estoque */}
-        <div>
-          <label htmlFor="estoque" className="label-gaming block mb-2">
-            Estoque
-          </label>
-          <input
-            type="number"
-            name="estoque"
-            id="estoque"
-            value={produto.estoque}
-            onChange={atualizarEstado}
-            placeholder="Quantidade em estoque"
-            min="0"
-            className={`input-gaming w-full ${
-              errors.estoque ? "input-error" : ""
-            }`}
-          />
-          {errors.estoque && (
-            <p className="body-sm text-error-400 mt-1">{errors.estoque}</p>
-          )}
-        </div>
-
-        {/* URLs Imagens */}
-        <div className="col-span-full">
-          <label htmlFor="imagens" className="label-gaming block mb-2">
-            URLs das Imagens
-          </label>
-          <input
-            type="text"
-            name="imagens"
-            id="imagens"
-            value={produto.imagens.join(", ")}
-            onChange={atualizarImagens}
-            placeholder="https://exemplo.com/imagem1.jpg, https://exemplo.com/imagem2.jpg"
-            className={`input-gaming w-full ${
-              errors.imagens ? "input-error" : ""
-            }`}
-          />
-          <p className="body-sm text-neutral-400 mt-1">Separe múltiplas URLs por vírgula</p>
-          {errors.imagens && (
-            <p className="body-sm text-error-400 mt-1">{errors.imagens}</p>
-          )}
-        </div>
-
-        {/* Descrição */}
-        <div className="col-span-full">
-          <label htmlFor="descricao" className="label-gaming block mb-2">
-            Descrição do Jogo
-          </label>
-          <textarea
-            name="descricao"
-            id="descricao"
-            value={produto.descricao}
-            onChange={atualizarEstado}
-            placeholder="Descreva o jogo, sua história, gameplay e características..."
-            rows={4}
-            className={`textarea-gaming w-full ${
-              errors.descricao ? "input-error" : ""
-            }`}
-          />
-          {errors.descricao && (
-            <p className="body-sm text-error-400 mt-1">{errors.descricao}</p>
-          )}
-        </div>
-
-        {/* Ativo */}
-        <div className="col-span-full">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="ativo"
-              id="ativo"
-              checked={produto.ativo}
-              onChange={(e) =>
-                setProduto({ ...produto, ativo: e.target.checked })
-              }
-              className="checkbox-gaming"
-            />
-            <span className="body-base text-neutral-300">Jogo ativo na loja</span>
-          </label>
-        </div>
-
-        {/* Botão de envio */}
-        <div className="col-span-full flex gap-4 pt-4">
+    <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary-600 to-primary-500 p-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <GameController size={24} className="text-white" weight="fill" />
+            <h2 className="text-xl font-bold text-white">
+              {isEditing ? "Editar Produto" : "Novo Produto"}
+            </h2>
+          </div>
           <button
-            type="submit"
-            disabled={isLoading}
-            className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
+            onClick={onClose}
+            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
           >
-            {isLoading ? (
-              <>
-                <RotatingLines
-                  strokeColor="white"
-                  strokeWidth="5"
-                  animationDuration="0.75"
-                  width="24"
-                  visible={true}
-                />
-                <span className="ml-2 cta-gaming">Salvando...</span>
-              </>
-            ) : (
-              <span className="cta-gaming">{id ? "Atualizar Jogo" : "Cadastrar Jogo"}</span>
-            )}
+            <X size={20} className="text-white" />
           </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Nome */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <TextT size={16} />
+                Nome do Produto *
+              </label>
+              <input
+                type="text"
+                name="nome"
+                value={produto.nome || ""}
+                onChange={atualizarEstado}
+                placeholder="Ex: The Legend of Zelda"
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors ${
+                  errors.nome ? "border-red-500" : "border-neutral-700"
+                }`}
+              />
+              {errors.nome && (
+                <p className="text-red-400 text-sm mt-1">{errors.nome}</p>
+              )}
+            </div>
+
+            {/* Preço */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <CurrencyDollar size={16} />
+                Preço (R$) *
+              </label>
+              <input
+                type="number"
+                name="preco"
+                value={produto.preco || ""}
+                onChange={atualizarEstado}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors ${
+                  errors.preco ? "border-red-500" : "border-neutral-700"
+                }`}
+              />
+              {errors.preco && (
+                <p className="text-red-400 text-sm mt-1">{errors.preco}</p>
+              )}
+            </div>
+
+            {/* Desconto */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Percent size={16} />
+                Desconto (%)
+              </label>
+              <input
+                type="number"
+                name="desconto"
+                value={produto.desconto || ""}
+                onChange={atualizarEstado}
+                placeholder="0"
+                min="0"
+                max="100"
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors"
+              />
+            </div>
+
+            {/* Estoque */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Package size={16} />
+                Estoque
+              </label>
+              <input
+                type="number"
+                name="estoque"
+                value={produto.estoque || ""}
+                onChange={atualizarEstado}
+                placeholder="0"
+                min="0"
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors ${
+                  errors.estoque ? "border-red-500" : "border-neutral-700"
+                }`}
+              />
+              {errors.estoque && (
+                <p className="text-red-400 text-sm mt-1">{errors.estoque}</p>
+              )}
+            </div>
+
+            {/* Plataforma */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Desktop size={16} />
+                Plataforma *
+              </label>
+              <select
+                name="plataforma"
+                value={produto.plataforma || ""}
+                onChange={atualizarEstado}
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors ${
+                  errors.plataforma ? "border-red-500" : "border-neutral-700"
+                }`}
+              >
+                <option value="">Selecione a plataforma</option>
+                {PLATAFORMAS.map((plat) => (
+                  <option key={plat} value={plat}>
+                    {plat}
+                  </option>
+                ))}
+              </select>
+              {errors.plataforma && (
+                <p className="text-red-400 text-sm mt-1">{errors.plataforma}</p>
+              )}
+            </div>
+
+            {/* Categoria */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Tag size={16} />
+                Categoria *
+              </label>
+              <select
+                value={produto.categoria?.id || ""}
+                onChange={atualizarCategoria}
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors ${
+                  errors.categoria ? "border-red-500" : "border-neutral-700"
+                }`}
+              >
+                <option value="">Selecione a categoria</option>
+                {categorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icone} {cat.tipo}
+                  </option>
+                ))}
+              </select>
+              {errors.categoria && (
+                <p className="text-red-400 text-sm mt-1">{errors.categoria}</p>
+              )}
+            </div>
+
+            {/* Desenvolvedor */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Buildings size={16} />
+                Desenvolvedor
+              </label>
+              <input
+                type="text"
+                name="desenvolvedor"
+                value={produto.desenvolvedor || ""}
+                onChange={atualizarEstado}
+                placeholder="Ex: Nintendo"
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors"
+              />
+            </div>
+
+            {/* Publisher */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Buildings size={16} />
+                Publisher
+              </label>
+              <input
+                type="text"
+                name="publisher"
+                value={produto.publisher || ""}
+                onChange={atualizarEstado}
+                placeholder="Ex: Nintendo"
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors"
+              />
+            </div>
+
+            {/* Data de Lançamento */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <CalendarBlank size={16} />
+                Data de Lançamento
+              </label>
+              <input
+                type="date"
+                name="dataLancamento"
+                value={produto.dataLancamento || ""}
+                onChange={atualizarEstado}
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
+              />
+            </div>
+
+            {/* Ativo */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300">
+                <ToggleRight size={16} />
+                Produto Ativo
+              </label>
+              <button
+                type="button"
+                onClick={() => setProduto({ ...produto, ativo: !produto.ativo })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  produto.ativo ? "bg-primary-500" : "bg-neutral-700"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    produto.ativo ? "translate-x-6" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <span className={produto.ativo ? "text-green-400" : "text-neutral-500"}>
+                {produto.ativo ? "Sim" : "Não"}
+              </span>
+            </div>
+
+            {/* URLs das Imagens - Full Width */}
+            <div className="col-span-full">
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <Image size={16} />
+                URLs das Imagens
+              </label>
+              <input
+                type="text"
+                value={produto.imagens?.join(", ") || ""}
+                onChange={atualizarImagens}
+                placeholder="https://exemplo.com/img1.jpg, https://exemplo.com/img2.jpg"
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors"
+              />
+              <p className="text-neutral-500 text-xs mt-1">
+                Separe múltiplas URLs por vírgula
+              </p>
+            </div>
+
+            {/* Descrição - Full Width */}
+            <div className="col-span-full">
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+                <TextAlignLeft size={16} />
+                Descrição
+              </label>
+              <textarea
+                name="descricao"
+                value={produto.descricao || ""}
+                onChange={atualizarEstado}
+                placeholder="Descreva o jogo, sua história, gameplay e características..."
+                rows={4}
+                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              />
+            </div>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="p-4 bg-neutral-800/30 border-t border-neutral-800 flex gap-3 flex-shrink-0">
           <button
             type="button"
-            onClick={() => navigate('/produtos')}
-            className="btn-outline flex-1"
+            onClick={onClose}
+            disabled={isLoading}
+            className="btn-ghost flex-1 justify-center"
           >
-            <span className="cta-gaming">Cancelar</span>
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="btn-primary flex-1 justify-center disabled:opacity-50"
+          >
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+            ) : (
+              <>
+                <FloppyDisk size={18} />
+                {isEditing ? "Atualizar" : "Cadastrar"}
+              </>
+            )}
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

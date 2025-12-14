@@ -30,9 +30,7 @@ import ToastDemo from './components/toast/ToastDemo';
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
 
 // Produtos
-import FormularioProduto from './components/produtos/formularioProduto/FormularioProduto';
 import ListaProdutos from './components/produtos/listaProdutos/ListaProdutos';
-import DeletarProduto from './components/produtos/deletarProdutos/DeletarProduto';
 
 function App() {
   return (
@@ -104,30 +102,6 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <AdminProdutos />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/cadastrarProduto"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <FormularioProduto />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/editarProduto/:id"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <FormularioProduto />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deletarProduto/:id"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <DeletarProduto />
                     </ProtectedRoute>
                   }
                 />

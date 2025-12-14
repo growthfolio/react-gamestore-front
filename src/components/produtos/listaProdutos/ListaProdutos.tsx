@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
 import categoriaService from "../../../services/categoria.service";
-import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X } from "@phosphor-icons/react";
+import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X, Plus } from "@phosphor-icons/react";
 import { Produto } from "../../../models/produtos/Produto";
 import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
+import FormularioProduto from "../formularioProduto/FormularioProduto";
+import DeletarProduto from "../deletarProdutos/DeletarProduto";
 
 function ListaProdutos() {
   const { isAdmin } = useAuth();
@@ -22,6 +24,9 @@ function ListaProdutos() {
   const [precoMin, setPrecoMin] = useState("");
   const [precoMax, setPrecoMax] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [produtoParaEditar, setProdutoParaEditar] = useState<number | undefined>(undefined);
+  const [produtoParaDeletar, setProdutoParaDeletar] = useState<Produto | null>(null);
   const itensPorPagina = 12;
 
   async function buscarProdutos(pagina: number = 0, termoBusca: string = "", catId: string = "", sort: string = "nome,asc") {
@@ -147,18 +152,32 @@ function ListaProdutos() {
             <GameController className="text-primary-500" size={32} />
             Catálogo de Jogos
           </h1>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`btn-ghost flex items-center gap-2 ${showFilters ? 'text-primary-400' : ''}`}
-          >
-            <Funnel size={20} />
-            Filtros
-            {hasActiveFilters && (
-              <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                !
-              </span>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setProdutoParaEditar(undefined);
+                  setShowFormModal(true);
+                }}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Novo Produto
+              </button>
             )}
-          </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-ghost flex items-center gap-2 ${showFilters ? 'text-primary-400' : ''}`}
+            >
+              <Funnel size={20} />
+              Filtros
+              {hasActiveFilters && (
+                <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  !
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Barra de Busca e Filtros */}
@@ -394,20 +413,23 @@ function ListaProdutos() {
                       
                       {isAdmin && (
                         <div className="flex gap-1">
-                          <Link
-                            to={`/editarProduto/${produto.id}`}
+                          <button
+                            onClick={() => {
+                              setProdutoParaEditar(produto.id);
+                              setShowFormModal(true);
+                            }}
                             className="btn-ghost p-2"
                             title="Editar"
                           >
                             <PencilSimple size={18} />
-                          </Link>
-                          <Link
-                            to={`/deletarProduto/${produto.id}`}
+                          </button>
+                          <button
+                            onClick={() => setProdutoParaDeletar(produto)}
                             className="btn-ghost p-2 text-red-400 hover:text-red-300"
                             title="Excluir"
                           >
                             <Trash size={18} />
-                          </Link>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -466,6 +488,34 @@ function ListaProdutos() {
               </button>
             )}
           </div>
+        )}
+
+        {/* Modal de Formulário (Criar/Editar) */}
+        {showFormModal && (
+          <FormularioProduto
+            produtoId={produtoParaEditar}
+            onClose={() => {
+              setShowFormModal(false);
+              setProdutoParaEditar(undefined);
+            }}
+            onSaved={() => {
+              setShowFormModal(false);
+              setProdutoParaEditar(undefined);
+              buscarProdutos(paginaAtual, busca, categoriaId, ordenacao);
+            }}
+          />
+        )}
+
+        {/* Modal de Exclusão */}
+        {produtoParaDeletar && (
+          <DeletarProduto
+            produto={produtoParaDeletar}
+            onClose={() => setProdutoParaDeletar(null)}
+            onDeleted={() => {
+              setProdutoParaDeletar(null);
+              buscarProdutos(paginaAtual, busca, categoriaId, ordenacao);
+            }}
+          />
         )}
       </div>
     </div>

@@ -51,12 +51,6 @@ function NavBar() {
             {isAdmin && (
               <>
                 <Link
-                  to="/cadastrarProduto"
-                  className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
-                >
-                  Cad. Jogo
-                </Link>
-                <Link
                   to="/categorias"
                   className="cta-gaming text-sm hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all hover:bg-neutral-800"
                 >
