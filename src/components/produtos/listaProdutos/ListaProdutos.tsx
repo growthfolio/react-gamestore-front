@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { Dna } from "react-loader-spinner";
 import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
 import categoriaService from "../../../services/categoria.service";
-import { PencilSimple, Trash, MagnifyingGlass } from "@phosphor-icons/react";
+import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X } from "@phosphor-icons/react";
 import { Produto } from "../../../models/produtos/Produto";
 import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -20,6 +19,9 @@ function ListaProdutos() {
   const [busca, setBusca] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [ordenacao, setOrdenacao] = useState("nome,asc");
+  const [precoMin, setPrecoMin] = useState("");
+  const [precoMax, setPrecoMax] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const itensPorPagina = 12;
 
   async function buscarProdutos(pagina: number = 0, termoBusca: string = "", catId: string = "", sort: string = "nome,asc") {
@@ -53,7 +55,7 @@ function ListaProdutos() {
       setTotalPaginas(response.totalPages);
       setTotalElementos(response.totalElements);
       setPaginaAtual(response.number);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao listar produtos:", error);
       alert("Erro ao carregar produtos");
     } finally {
@@ -76,10 +78,12 @@ function ListaProdutos() {
     if (catParam) {
       setCategoriaId(catParam);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     buscarProdutos(0, busca, categoriaId, ordenacao);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoriaId]);
 
   const handleBusca = (e: React.FormEvent) => {
@@ -115,209 +119,355 @@ function ListaProdutos() {
     }
   };
 
+  const limparFiltros = () => {
+    setBusca("");
+    setCategoriaId("");
+    setPrecoMin("");
+    setPrecoMax("");
+    setOrdenacao("nome,asc");
+    setSearchParams({});
+    buscarProdutos(0, "", "", "nome,asc");
+  };
+
+  const hasActiveFilters = busca || categoriaId || precoMin || precoMax;
+
+  // Filtrar produtos por preço (client-side já que a API pode não suportar)
+  const produtosFiltrados = produtos.filter(produto => {
+    const minOk = !precoMin || produto.preco >= parseFloat(precoMin);
+    const maxOk = !precoMax || produto.preco <= parseFloat(precoMax);
+    return minOk && maxOk;
+  });
+
   return (
-    <div className="container mx-auto my-12 px-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Catálogo de Produtos</h1>
-
-      {/* Barra de Busca e Filtros */}
-      <div className="mb-6 flex flex-col lg:flex-row gap-4 items-center">
-        {/* Busca */}
-        <form onSubmit={handleBusca} className="flex gap-2 flex-1 max-w-md w-full">
-          <input
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar produtos..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+    <div className="min-h-screen bg-neutral-950 py-8">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="heading-gamer text-2xl md:text-3xl flex items-center gap-3">
+            <GameController className="text-primary-500" size={32} />
+            Catálogo de Jogos
+          </h1>
           <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`btn-ghost flex items-center gap-2 ${showFilters ? 'text-primary-400' : ''}`}
           >
-            <MagnifyingGlass size={20} weight="bold" />
-            Buscar
+            <Funnel size={20} />
+            Filtros
+            {hasActiveFilters && (
+              <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                !
+              </span>
+            )}
           </button>
-        </form>
-
-        {/* Filtro por Categoria */}
-        <div className="flex items-center gap-2 w-full lg:w-auto">
-          <label className="text-gray-700 font-medium">Categoria:</label>
-          <select
-            value={categoriaId}
-            onChange={handleCategoriaChange}
-            className="flex-1 lg:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todas</option>
-            {categorias.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.tipo}
-              </option>
-            ))}
-          </select>
         </div>
 
-        {/* Ordenação */}
-        <div className="flex items-center gap-2 w-full lg:w-auto">
-          <label className="text-gray-700 font-medium">Ordenar:</label>
-          <select
-            value={ordenacao}
-            onChange={handleOrdenacao}
-            className="flex-1 lg:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="nome,asc">Nome (A-Z)</option>
-            <option value="nome,desc">Nome (Z-A)</option>
-            <option value="preco,asc">Menor Preço</option>
-            <option value="preco,desc">Maior Preço</option>
-          </select>
-        </div>
-      </div>
+        {/* Barra de Busca e Filtros */}
+        <div className="card-gaming p-6 mb-6 space-y-4">
+          {/* Busca Principal */}
+          <form onSubmit={handleBusca} className="flex gap-2">
+            <div className="relative flex-1">
+              <MagnifyingGlass 
+                size={20} 
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" 
+              />
+              <input
+                type="text"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar jogos por nome..."
+                className="w-full pl-12 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn-primary px-6"
+            >
+              Buscar
+            </button>
+          </form>
 
-      {/* Info de Resultados */}
-      <div className="mb-4 text-gray-600">
-        Mostrando {produtos.length} de {totalElementos} produtos
-      </div>
-
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex justify-center py-8">
-          <Dna visible={true} height="100" width="100" ariaLabel="Carregando produtos" />
-        </div>
-      )}
-
-      {/* Tabela de Produtos */}
-      {!isLoading && produtos.length > 0 && (
-        <>
-          <div className="overflow-x-auto shadow-md rounded-lg">
-            <table className="w-full border-collapse border border-gray-300 bg-white">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Nome</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Preço</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Estoque</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Plataforma</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Desenvolvedor</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">Status</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {produtos.map((produto: Produto, index: number) => (
-                <tr
-                  key={produto.id}
-                  className={`transition-colors ${
-                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  } hover:bg-gray-100`}
+          {/* Filtros Avançados */}
+          {showFilters && (
+            <div className="pt-4 border-t border-neutral-800 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Categoria */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Categoria
+                </label>
+                <select
+                  value={categoriaId}
+                  onChange={handleCategoriaChange}
+                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
                 >
-                  <td className="border border-gray-300 px-4 py-2">{produto.id}</td>
-                  <td className="border border-gray-300 px-4 py-2">{produto.nome}</td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {produto.preco.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">{produto.estoque}</td>
-                  <td className="border border-gray-300 px-4 py-2">{produto.plataforma}</td>
-                  <td className="border border-gray-300 px-4 py-2">{produto.desenvolvedor}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm ${
-                        produto.ativo
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {produto.ativo ? "Ativo" : "Inativo"}
-                    </span>
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <div className="flex justify-center gap-3">
-                      {/* Botão Editar - Apenas Admin */}
-                      {isAdmin && (
-                        <>
-                          <Link
-                            to={`/editarProduto/${produto.id}`}
-                            className="text-blue-500 hover:text-blue-700"
-                            title="Editar"
-                          >
-                            <PencilSimple size={22} weight="light" />
-                          </Link>
+                  <option value="">Todas as categorias</option>
+                  {categorias.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.tipo}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                          {/* Botão Deletar */}
-                          <Link
-                            to={`/deletarProduto/${produto.id}`}
-                            className="text-red-500 hover:text-red-700"
-                            title="Excluir"
-                          >
-                            <Trash size={22} weight="light" />
-                          </Link>
+              {/* Preço Mínimo */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Preço Mínimo
+                </label>
+                <input
+                  type="number"
+                  value={precoMin}
+                  onChange={(e) => setPrecoMin(e.target.value)}
+                  placeholder="R$ 0"
+                  min="0"
+                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Preço Máximo */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Preço Máximo
+                </label>
+                <input
+                  type="number"
+                  value={precoMax}
+                  onChange={(e) => setPrecoMax(e.target.value)}
+                  placeholder="R$ 999"
+                  min="0"
+                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Ordenação */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Ordenar por
+                </label>
+                <select
+                  value={ordenacao}
+                  onChange={handleOrdenacao}
+                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
+                >
+                  <option value="nome,asc">Nome (A-Z)</option>
+                  <option value="nome,desc">Nome (Z-A)</option>
+                  <option value="preco,asc">Menor Preço</option>
+                  <option value="preco,desc">Maior Preço</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Limpar Filtros */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-4 pt-4 border-t border-neutral-800">
+              <button
+                onClick={limparFiltros}
+                className="btn-ghost text-sm flex items-center gap-2 text-red-400 hover:text-red-300"
+              >
+                <X size={16} />
+                Limpar todos os filtros
+              </button>
+              <div className="flex gap-2 flex-wrap">
+                {busca && (
+                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
+                    Busca: "{busca}"
+                    <button onClick={() => { setBusca(""); buscarProdutos(0, "", categoriaId, ordenacao); }}>
+                      <X size={14} />
+                    </button>
+                  </span>
+                )}
+                {categoriaId && (
+                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
+                    Categoria: {categorias.find(c => c.id.toString() === categoriaId)?.tipo}
+                    <button onClick={() => { setCategoriaId(""); setSearchParams({}); }}>
+                      <X size={14} />
+                    </button>
+                  </span>
+                )}
+                {precoMin && (
+                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
+                    Min: R$ {precoMin}
+                    <button onClick={() => setPrecoMin("")}>
+                      <X size={14} />
+                    </button>
+                  </span>
+                )}
+                {precoMax && (
+                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
+                    Max: R$ {precoMax}
+                    <button onClick={() => setPrecoMax("")}>
+                      <X size={14} />
+                    </button>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Info de Resultados */}
+        <div className="mb-4 text-neutral-400 text-sm">
+          Mostrando {produtosFiltrados.length} de {totalElementos} jogos
+        </div>
+
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mb-4"></div>
+            <p className="text-neutral-400">Carregando jogos...</p>
+          </div>
+        )}
+
+        {/* Grid de Produtos */}
+        {!isLoading && produtosFiltrados.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {produtosFiltrados.map((produto: Produto) => (
+                <div
+                  key={produto.id}
+                  className="card-gaming overflow-hidden group hover:scale-[1.02] transition-transform"
+                >
+                  {/* Imagem */}
+                  <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">
+                    {produto.imagens && produto.imagens.length > 0 ? (
+                      <img
+                        src={produto.imagens[0]}
+                        alt={produto.nome}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <GameController size={64} className="text-neutral-600" />
+                      </div>
+                    )}
+                    
+                    {/* Badge de Status */}
+                    {!produto.ativo && (
+                      <span className="absolute top-3 left-3 px-2 py-1 bg-red-500/90 text-white text-xs rounded-full">
+                        Indisponível
+                      </span>
+                    )}
+                    
+                    {/* Desconto */}
+                    {produto.desconto > 0 && (
+                      <span className="absolute top-3 right-3 px-2 py-1 bg-accent-500 text-neutral-900 text-xs font-bold rounded-full">
+                        -{produto.desconto}%
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-white mb-1 line-clamp-1 group-hover:text-primary-400 transition-colors">
+                      {produto.nome}
+                    </h3>
+                    <p className="text-xs text-neutral-400 mb-3">
+                      {produto.plataforma} • {produto.desenvolvedor}
+                    </p>
+
+                    {/* Preço */}
+                    <div className="flex items-end gap-2 mb-4">
+                      {produto.desconto > 0 ? (
+                        <>
+                          <span className="text-xs text-neutral-500 line-through">
+                            R$ {produto.preco.toFixed(2)}
+                          </span>
+                          <span className="text-lg font-bold text-accent-400">
+                            R$ {(produto.preco * (1 - produto.desconto / 100)).toFixed(2)}
+                          </span>
                         </>
+                      ) : (
+                        <span className="text-lg font-bold text-accent-400">
+                          R$ {produto.preco.toFixed(2)}
+                        </span>
                       )}
-                      
-                      {/* Link Ver Detalhes - Todos */}
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex gap-2">
                       <Link
                         to={`/produtos/${produto.id}`}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                        className="btn-primary flex-1 justify-center text-sm py-2"
                       >
                         Ver Detalhes
                       </Link>
+                      
+                      {isAdmin && (
+                        <div className="flex gap-1">
+                          <Link
+                            to={`/editarProduto/${produto.id}`}
+                            className="btn-ghost p-2"
+                            title="Editar"
+                          >
+                            <PencilSimple size={18} />
+                          </Link>
+                          <Link
+                            to={`/deletarProduto/${produto.id}`}
+                            className="btn-ghost p-2 text-red-400 hover:text-red-300"
+                            title="Excluir"
+                          >
+                            <Trash size={18} />
+                          </Link>
+                        </div>
+                      )}
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-          </div>
+            </div>
 
-          {/* Paginação */}
-          <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-            <button
-              onClick={irParaPaginaAnterior}
-              disabled={paginaAtual === 0}
-              className={`px-6 py-2 rounded-lg font-semibold ${
-                paginaAtual === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
-            >
-              ← Anterior
-            </button>
-            <span className="text-gray-700 font-medium">
-              Página {paginaAtual + 1} de {totalPaginas}
-            </span>
-            <button
-              onClick={irParaProximaPagina}
-              disabled={paginaAtual === totalPaginas - 1}
-              className={`px-6 py-2 rounded-lg font-semibold ${
-                paginaAtual === totalPaginas - 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
-            >
-              Próxima →
-            </button>
-          </div>
-        </>
-      )}
+            {/* Paginação */}
+            <div className="flex flex-col md:flex-row justify-between items-center mt-8 gap-4">
+              <button
+                onClick={irParaPaginaAnterior}
+                disabled={paginaAtual === 0}
+                className={`px-6 py-2 rounded-gaming font-semibold transition-colors ${
+                  paginaAtual === 0
+                    ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                    : "btn-secondary"
+                }`}
+              >
+                ← Anterior
+              </button>
+              <span className="text-neutral-400">
+                Página {paginaAtual + 1} de {totalPaginas || 1}
+              </span>
+              <button
+                onClick={irParaProximaPagina}
+                disabled={paginaAtual === totalPaginas - 1 || totalPaginas === 0}
+                className={`px-6 py-2 rounded-gaming font-semibold transition-colors ${
+                  paginaAtual === totalPaginas - 1 || totalPaginas === 0
+                    ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                    : "btn-secondary"
+                }`}
+              >
+                Próxima →
+              </button>
+            </div>
+          </>
+        )}
 
-      {/* Empty State */}
-      {!isLoading && produtos.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Nenhum produto encontrado</p>
-          {busca && (
-            <button
-              onClick={() => {
-                setBusca("");
-                buscarProdutos(0, "", ordenacao);
-              }}
-              className="mt-4 text-blue-600 hover:text-blue-700 underline"
-            >
-              Limpar busca
-            </button>
-          )}
-        </div>
-      )}
+        {/* Empty State */}
+        {!isLoading && produtosFiltrados.length === 0 && (
+          <div className="card-gaming p-12 text-center">
+            <GameController size={64} className="mx-auto text-neutral-600 mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">
+              Nenhum jogo encontrado
+            </h2>
+            <p className="text-neutral-400 mb-6">
+              Tente ajustar os filtros ou buscar por outro termo
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={limparFiltros}
+                className="btn-primary"
+              >
+                Limpar Filtros
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
