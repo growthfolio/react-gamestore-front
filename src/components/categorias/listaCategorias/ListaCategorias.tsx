@@ -4,6 +4,7 @@ import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import igdbService from "../../../services/igdb.service";
 import { useToast } from "../../../contexts/ToastContext";
+import DeletarCategoria from "../deletarCategorias/DeletarCategoria";
 import { 
   PencilSimple, 
   Trash, 
@@ -20,6 +21,7 @@ function ListaCategorias() {
   const [isLoading, setIsLoading] = useState(true);
   const [importandoIgdb, setImportandoIgdb] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [categoriaParaDeletar, setCategoriaParaDeletar] = useState<Categoria | null>(null);
   const itensPorPagina = 12;
   const toast = useToast();
 
@@ -203,13 +205,13 @@ function ListaCategorias() {
                       <PencilSimple size={16} />
                       Editar
                     </Link>
-                    <Link
-                      to={`/deletarCategoria/${categoria.id}`}
+                    <button
+                      onClick={() => setCategoriaParaDeletar(categoria)}
                       className="btn-ghost flex-1 justify-center text-sm py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
                       <Trash size={16} />
                       Excluir
-                    </Link>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -246,6 +248,18 @@ function ListaCategorias() {
               </div>
             )}
           </>
+        )}
+
+        {/* Modal de Exclusão */}
+        {categoriaParaDeletar && (
+          <DeletarCategoria
+            categoria={categoriaParaDeletar}
+            onClose={() => setCategoriaParaDeletar(null)}
+            onDeleted={() => {
+              setCategoriaParaDeletar(null);
+              buscarCategorias();
+            }}
+          />
         )}
       </div>
     </div>

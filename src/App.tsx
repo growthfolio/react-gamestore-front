@@ -29,7 +29,6 @@ import ToastDemo from './components/toast/ToastDemo';
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
 import FormularioCategoria from './components/categorias/formularioCategoria/FormularioCategoria';
-import DeletarCategoria from './components/categorias/deletarCategorias/DeletarCategoria';
 
 // Produtos
 import FormularioProduto from './components/produtos/formularioProduto/FormularioProduto';
@@ -106,14 +105,6 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <FormularioCategoria />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deletarCategoria/:id"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <DeletarCategoria />
                     </ProtectedRoute>
                   }
                 />
