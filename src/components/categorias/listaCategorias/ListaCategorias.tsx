@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import igdbService from "../../../services/igdb.service";
 import { useToast } from "../../../contexts/ToastContext";
 import DeletarCategoria from "../deletarCategorias/DeletarCategoria";
+import FormularioCategoria from "../formularioCategoria/FormularioCategoria";
 import { 
   PencilSimple, 
   Trash, 
@@ -22,6 +22,8 @@ function ListaCategorias() {
   const [importandoIgdb, setImportandoIgdb] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [categoriaParaDeletar, setCategoriaParaDeletar] = useState<Categoria | null>(null);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [categoriaParaEditar, setCategoriaParaEditar] = useState<number | undefined>(undefined);
   const itensPorPagina = 12;
   const toast = useToast();
 
@@ -115,10 +117,16 @@ function ListaCategorias() {
             </button>
             
             {/* Botão Nova Categoria */}
-            <Link to="/cadastrarCategoria" className="btn-primary flex items-center gap-2">
+            <button 
+              onClick={() => {
+                setCategoriaParaEditar(undefined);
+                setShowFormModal(true);
+              }}
+              className="btn-primary flex items-center gap-2"
+            >
               <Plus size={20} />
               Nova Categoria
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -149,10 +157,16 @@ function ListaCategorias() {
                 <CloudArrowDown size={18} />
                 Importar do IGDB
               </button>
-              <Link to="/cadastrarCategoria" className="btn-primary">
+              <button 
+                onClick={() => {
+                  setCategoriaParaEditar(undefined);
+                  setShowFormModal(true);
+                }}
+                className="btn-primary"
+              >
                 <Plus size={18} />
                 Criar Categoria
-              </Link>
+              </button>
             </div>
           </div>
         )}
@@ -198,13 +212,16 @@ function ListaCategorias() {
                   
                   {/* Ações */}
                   <div className="flex gap-2 pt-3 border-t border-neutral-800">
-                    <Link
-                      to={`/editarCategoria/${categoria.id}`}
+                    <button
+                      onClick={() => {
+                        setCategoriaParaEditar(categoria.id);
+                        setShowFormModal(true);
+                      }}
                       className="btn-ghost flex-1 justify-center text-sm py-2"
                     >
                       <PencilSimple size={16} />
                       Editar
-                    </Link>
+                    </button>
                     <button
                       onClick={() => setCategoriaParaDeletar(categoria)}
                       className="btn-ghost flex-1 justify-center text-sm py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
@@ -257,6 +274,22 @@ function ListaCategorias() {
             onClose={() => setCategoriaParaDeletar(null)}
             onDeleted={() => {
               setCategoriaParaDeletar(null);
+              buscarCategorias();
+            }}
+          />
+        )}
+
+        {/* Modal de Formulário (Criar/Editar) */}
+        {showFormModal && (
+          <FormularioCategoria
+            categoriaId={categoriaParaEditar}
+            onClose={() => {
+              setShowFormModal(false);
+              setCategoriaParaEditar(undefined);
+            }}
+            onSaved={() => {
+              setShowFormModal(false);
+              setCategoriaParaEditar(undefined);
               buscarCategorias();
             }}
           />

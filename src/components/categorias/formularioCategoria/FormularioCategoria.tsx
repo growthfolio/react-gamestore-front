@@ -1,12 +1,11 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
 import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import { useToast } from "../../../contexts/ToastContext";
 import {
   Tag,
   FloppyDisk,
-  ArrowLeft,
+  X,
   TextT,
   TextAlignLeft,
   Image,
@@ -35,12 +34,18 @@ const EMOJI_SUGESTOES = [
   "🎲",
   "🗡️",
   "👆",
-  "��",
+  "🌍",
   "❓",
   "🎱",
 ];
 
-function FormularioCategoria() {
+interface FormularioCategoriaProps {
+  categoriaId?: number;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function FormularioCategoria({ categoriaId, onClose, onSaved }: FormularioCategoriaProps) {
   const [categoria, setCategoria] = useState<Partial<Categoria>>({
     tipo: "",
     descricao: "",
@@ -55,29 +60,27 @@ function FormularioCategoria() {
     icone: "",
   });
 
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
   const toast = useToast();
-  const isEditing = !!id;
+  const isEditing = !!categoriaId;
 
-  async function buscarPorId(categoriaId: string) {
+  async function buscarPorId(id: number) {
     try {
       setCarregando(true);
-      const data = await categoriaService.buscarPorId(Number(categoriaId));
+      const data = await categoriaService.buscarPorId(id);
       setCategoria(data);
     } catch (error) {
       console.error("Erro ao carregar categoria:", error);
       toast.error("Erro", "Não foi possível carregar a categoria");
-      navigate("/categorias");
+      onClose();
     } finally {
       setCarregando(false);
     }
   }
 
   useEffect(() => {
-    if (id) buscarPorId(id);
+    if (categoriaId) buscarPorId(categoriaId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [categoriaId]);
 
   function validarFormulario(): boolean {
     let valid = true;
@@ -101,7 +104,6 @@ function FormularioCategoria() {
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
     setCategoria({ ...categoria, [e.target.name]: e.target.value });
-    // Limpa erro do campo quando usuário digita
     if (errors[e.target.name as keyof typeof errors]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
@@ -124,13 +126,13 @@ function FormularioCategoria() {
       };
 
       if (isEditing) {
-        await categoriaService.atualizar(Number(id), dados);
+        await categoriaService.atualizar(categoriaId!, dados);
         toast.success("Sucesso", "Categoria atualizada com sucesso");
       } else {
         await categoriaService.criar(dados);
         toast.success("Sucesso", "Categoria criada com sucesso");
       }
-      navigate("/categorias");
+      onSaved();
     } catch (error) {
       console.error("Erro ao salvar categoria:", error);
       toast.error("Erro", "Não foi possível salvar a categoria");
@@ -139,166 +141,186 @@ function FormularioCategoria() {
     }
   }
 
-  if (carregando) {
-    return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-950 py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
+    <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl overflow-hidden shadow-2xl shadow-primary-500/10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/categorias" className="btn-ghost p-2">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="heading-gamer text-2xl md:text-3xl flex items-center gap-3">
-              <Tag className="text-secondary-500" size={28} />
-              {isEditing ? "Editar Categoria" : "Nova Categoria"}
-            </h1>
-            <p className="text-neutral-400 mt-1">
-              {isEditing
-                ? "Atualize os dados da categoria"
-                : "Preencha os dados para criar uma nova categoria"}
-            </p>
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-5 flex-shrink-0">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-white" weight="bold" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  {isEditing ? "Editar Categoria" : "Nova Categoria"}
+                </h2>
+                <p className="text-primary-100 text-sm">
+                  {isEditing
+                    ? "Atualize os dados da categoria"
+                    : "Preencha os dados para criar"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="p-2 hover:bg-white/20 rounded-xl transition-all text-white disabled:opacity-50"
+            >
+              <X size={20} weight="bold" />
+            </button>
           </div>
         </div>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="card-gaming p-6 space-y-6">
-          {/* Tipo */}
-          <div>
-            <label
-              htmlFor="tipo"
-              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
-            >
-              <TextT size={16} />
-              Nome da Categoria *
-            </label>
-            <input
-              type="text"
-              name="tipo"
-              id="tipo"
-              value={categoria.tipo || ""}
-              onChange={atualizarEstado}
-              placeholder="Ex: Ação, RPG, Aventura..."
-              className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none transition-colors ${
-                errors.tipo
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-neutral-700 focus:border-primary-500"
-              }`}
-            />
-            {errors.tipo && (
-              <p className="text-red-400 text-sm mt-1">{errors.tipo}</p>
-            )}
+        {/* Content */}
+        {carregando ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary-500 border-t-transparent"></div>
           </div>
-
-          {/* Descrição */}
-          <div>
-            <label
-              htmlFor="descricao"
-              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
-            >
-              <TextAlignLeft size={16} />
-              Descrição
-            </label>
-            <textarea
-              name="descricao"
-              id="descricao"
-              value={categoria.descricao || ""}
-              onChange={atualizarEstado}
-              placeholder="Descrição opcional da categoria..."
-              rows={3}
-              className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none resize-none transition-colors ${
-                errors.descricao
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-neutral-700 focus:border-primary-500"
-              }`}
-            />
-            {errors.descricao && (
-              <p className="text-red-400 text-sm mt-1">{errors.descricao}</p>
-            )}
-            <p className="text-neutral-500 text-xs mt-1">
-              {categoria.descricao?.length || 0}/255 caracteres
-            </p>
-          </div>
-
-          {/* Ícone */}
-          <div>
-            <label
-              htmlFor="icone"
-              className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
-            >
-              <Image size={16} />
-              Ícone
-            </label>
-
-            {/* Preview do ícone */}
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-16 h-16 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-3xl">
-                {categoria.icone || "🎮"}
-              </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
+            {/* Tipo */}
+            <div>
+              <label
+                htmlFor="tipo"
+                className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+              >
+                <TextT size={16} />
+                Nome da Categoria *
+              </label>
               <input
                 type="text"
-                name="icone"
-                id="icone"
-                value={categoria.icone || ""}
+                name="tipo"
+                id="tipo"
+                value={categoria.tipo || ""}
                 onChange={atualizarEstado}
-                placeholder="Emoji ou URL de imagem"
-                className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
+                placeholder="Ex: Ação, RPG, Aventura..."
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-xl text-white placeholder-neutral-500 focus:outline-none transition-colors ${
+                  errors.tipo
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-neutral-700 focus:border-primary-500"
+                }`}
               />
+              {errors.tipo && (
+                <p className="text-red-400 text-sm mt-1">{errors.tipo}</p>
+              )}
             </div>
 
-            {/* Sugestões de emojis */}
-            <div className="space-y-2">
-              <p className="text-neutral-500 text-xs">Sugestões:</p>
-              <div className="flex flex-wrap gap-2">
-                {EMOJI_SUGESTOES.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => selecionarEmoji(emoji)}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${
-                      categoria.icone === emoji
-                        ? "bg-primary-500/20 border-2 border-primary-500"
-                        : "bg-neutral-800 border border-neutral-700 hover:border-neutral-600"
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+            {/* Descrição */}
+            <div>
+              <label
+                htmlFor="descricao"
+                className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+              >
+                <TextAlignLeft size={16} />
+                Descrição
+              </label>
+              <textarea
+                name="descricao"
+                id="descricao"
+                value={categoria.descricao || ""}
+                onChange={atualizarEstado}
+                placeholder="Descrição opcional da categoria..."
+                rows={3}
+                className={`w-full px-4 py-3 bg-neutral-800 border rounded-xl text-white placeholder-neutral-500 focus:outline-none resize-none transition-colors ${
+                  errors.descricao
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-neutral-700 focus:border-primary-500"
+                }`}
+              />
+              {errors.descricao && (
+                <p className="text-red-400 text-sm mt-1">{errors.descricao}</p>
+              )}
+              <p className="text-neutral-500 text-xs mt-1">
+                {categoria.descricao?.length || 0}/255 caracteres
+              </p>
+            </div>
+
+            {/* Ícone */}
+            <div>
+              <label
+                htmlFor="icone"
+                className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2"
+              >
+                <Image size={16} />
+                Ícone
+              </label>
+
+              {/* Preview do ícone */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-14 h-14 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-2xl flex-shrink-0">
+                  {categoria.icone || "🎮"}
+                </div>
+                <input
+                  type="text"
+                  name="icone"
+                  id="icone"
+                  value={categoria.icone || ""}
+                  onChange={atualizarEstado}
+                  placeholder="Emoji ou URL"
+                  className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-white placeholder-neutral-500 focus:border-primary-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Sugestões de emojis */}
+              <div className="space-y-2">
+                <p className="text-neutral-500 text-xs">Sugestões:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {EMOJI_SUGESTOES.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => selecionarEmoji(emoji)}
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${
+                        categoria.icone === emoji
+                          ? "bg-primary-500/20 border-2 border-primary-500"
+                          : "bg-neutral-800 border border-neutral-700 hover:border-neutral-600"
+                      }`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Botões */}
-          <div className="flex gap-4 pt-4 border-t border-neutral-800">
-            <Link to="/categorias" className="btn-ghost flex-1 justify-center">
-              Cancelar
-            </Link>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary flex-1 justify-center disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <FloppyDisk size={18} />
-                  {isEditing ? "Atualizar" : "Criar Categoria"}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            {/* Botões */}
+            <div className="flex gap-3 pt-4 border-t border-neutral-800">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 bg-neutral-800 hover:bg-neutral-700 
+                           border border-neutral-600 hover:border-neutral-500
+                           rounded-xl text-neutral-300 font-medium
+                           transition-all duration-200 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 bg-primary-600 hover:bg-primary-500 
+                           rounded-xl text-white font-medium
+                           flex items-center justify-center gap-2
+                           transition-all duration-200 disabled:opacity-50
+                           shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <FloppyDisk size={18} weight="bold" />
+                    {isEditing ? "Atualizar" : "Criar"}
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
