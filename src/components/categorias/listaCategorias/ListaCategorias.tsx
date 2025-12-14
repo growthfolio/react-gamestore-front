@@ -3,17 +3,12 @@ import Categoria from "../../../models/categorias/Categoria";
 import categoriaService from "../../../services/categoria.service";
 import igdbService from "../../../services/igdb.service";
 import { useToast } from "../../../contexts/ToastContext";
-import DeletarCategoria from "../deletarCategorias/DeletarCategoria";
 import FormularioCategoria from "../formularioCategoria/FormularioCategoria";
+import CardCategorias from "../cardCategorias/CardCategorias";
 import { 
-  PencilSimple, 
-  Trash, 
   Plus, 
-  GameController, 
   CloudArrowDown,
-  Tag,
-  CheckCircle,
-  XCircle
+  Tag
 } from "@phosphor-icons/react";
 
 function ListaCategorias() {
@@ -21,7 +16,7 @@ function ListaCategorias() {
   const [isLoading, setIsLoading] = useState(true);
   const [importandoIgdb, setImportandoIgdb] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [categoriaParaDeletar, setCategoriaParaDeletar] = useState<Categoria | null>(null);
+  // Modal de deletar agora é gerenciado pelo CardCategorias
   const [showFormModal, setShowFormModal] = useState(false);
   const [categoriaParaEditar, setCategoriaParaEditar] = useState<number | undefined>(undefined);
   const itensPorPagina = 12;
@@ -174,63 +169,17 @@ function ListaCategorias() {
         {/* Grid de Categorias */}
         {!isLoading && categorias.length > 0 && (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {categoriasPaginadas.map((categoria) => (
-                <div
+                <CardCategorias
                   key={categoria.id}
-                  className="card-gaming p-4 hover:border-primary-500/50 transition-colors group"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {/* Ícone */}
-                      <div className="w-12 h-12 rounded-lg bg-neutral-800 flex items-center justify-center text-2xl">
-                        {categoria.icone || <GameController size={24} className="text-neutral-400" />}
-                      </div>
-                      
-                      <div>
-                        <h3 className="font-bold text-white group-hover:text-primary-400 transition-colors">
-                          {categoria.tipo}
-                        </h3>
-                        <span className="text-xs text-neutral-500">
-                          ID: {categoria.id}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Status */}
-                    {categoria.ativo ? (
-                      <CheckCircle size={20} className="text-green-500" weight="fill" />
-                    ) : (
-                      <XCircle size={20} className="text-red-500" weight="fill" />
-                    )}
-                  </div>
-                  
-                  {/* Descrição */}
-                  <p className="text-sm text-neutral-400 mb-4 line-clamp-2 min-h-[40px]">
-                    {categoria.descricao || "Sem descrição"}
-                  </p>
-                  
-                  {/* Ações */}
-                  <div className="flex gap-2 pt-3 border-t border-neutral-800">
-                    <button
-                      onClick={() => {
-                        setCategoriaParaEditar(categoria.id);
-                        setShowFormModal(true);
-                      }}
-                      className="btn-ghost flex-1 justify-center text-sm py-2"
-                    >
-                      <PencilSimple size={16} />
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => setCategoriaParaDeletar(categoria)}
-                      className="btn-ghost flex-1 justify-center text-sm py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash size={16} />
-                      Excluir
-                    </button>
-                  </div>
-                </div>
+                  categoria={categoria}
+                  onEdit={(id) => {
+                    setCategoriaParaEditar(id);
+                    setShowFormModal(true);
+                  }}
+                  onDeleted={buscarCategorias}
+                />
               ))}
             </div>
 
@@ -265,18 +214,6 @@ function ListaCategorias() {
               </div>
             )}
           </>
-        )}
-
-        {/* Modal de Exclusão */}
-        {categoriaParaDeletar && (
-          <DeletarCategoria
-            categoria={categoriaParaDeletar}
-            onClose={() => setCategoriaParaDeletar(null)}
-            onDeleted={() => {
-              setCategoriaParaDeletar(null);
-              buscarCategorias();
-            }}
-          />
         )}
 
         {/* Modal de Formulário (Criar/Editar) */}

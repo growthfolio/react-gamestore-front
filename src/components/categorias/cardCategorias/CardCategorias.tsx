@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Gamepad2,
   Swords,
@@ -29,6 +28,7 @@ import DeletarCategoria from "../deletarCategorias/DeletarCategoria";
 
 interface CardCategoriaProps {
   categoria: Categoria;
+  onEdit?: (categoriaId: number) => void;
   onDeleted?: () => void;
 }
 
@@ -91,7 +91,7 @@ const getGradientForCategory = (tipo: string): string => {
   return "from-primary-500/20 to-accent-500/20";
 };
 
-function CardCategorias({ categoria, onDeleted }: CardCategoriaProps) {
+function CardCategorias({ categoria, onEdit, onDeleted }: CardCategoriaProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const icon = getIconForCategory(categoria.tipo);
   const gradient = getGradientForCategory(categoria.tipo);
@@ -173,8 +173,8 @@ function CardCategorias({ categoria, onDeleted }: CardCategoriaProps) {
 
           {/* Ações */}
           <div className="flex items-center gap-2">
-            <Link
-              to={`/editarCategoria/${categoria.id}`}
+            <button
+              onClick={() => onEdit?.(categoria.id)}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 
                          bg-neutral-800/80 hover:bg-primary-500/20 
                          border border-neutral-600/50 hover:border-primary-500/50
@@ -184,7 +184,7 @@ function CardCategorias({ categoria, onDeleted }: CardCategoriaProps) {
             >
               <Edit3 className="w-3.5 h-3.5 shrink-0" />
               <span className="leading-none">Editar</span>
-            </Link>
+            </button>
 
             <button
               onClick={() => setShowDeleteModal(true)}
