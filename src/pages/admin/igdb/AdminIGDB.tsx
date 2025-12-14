@@ -4,8 +4,10 @@ import { MagnifyingGlass, GameController, CloudArrowDown, Package, CaretLeft, Ca
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { IGDBGameTable } from '../../../components/admin/IGDBGameTable';
+import { IGDBImportModal } from '../../../components/admin/IGDBImportModal';
 import { FormInput, FormButton } from '../../../components/forms';
 import IgdbService, { IgdbSearchResult } from '../../../services/igdb.service';
+import ProdutoService from '../../../services/produto.service';
 
 const AdminIGDB: React.FC = () => {
     const navigate = useNavigate();
@@ -15,6 +17,8 @@ const AdminIGDB: React.FC = () => {
     const [searchResults, setSearchResults] = useState<IgdbSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
+    const [gameToImport, setGameToImport] = useState<IgdbSearchResult | null>(null);
+    const [importLoading, setImportLoading] = useState(false);
 
     const fetchGames = useCallback(async (term?: string, pageNum: number = 1) => {
         try {
@@ -48,27 +52,46 @@ const AdminIGDB: React.FC = () => {
         fetchGames(searchTerm, newPage);
     };
 
-    const handleImportGame = async (game: IgdbSearchResult) => {
-        if (!window.confirm(`Importar "${game.nome}" para o catálogo?`)) {
-            return;
-        }
+    const handleImportGame = (game: IgdbSearchResult) => {
+        setGameToImport(game);
+    };
+
+    const handleConfirmImport = async (comercialData: {
+        preco: number;
+        estoque: number;
+        desconto: number;
+        ativo: boolean;
+    }) => {
+        if (!gameToImport) return;
 
         try {
-            setLoading(true);
-            await IgdbService.importGame(game.igdbId);
+            setImportLoading(true);
             
-            success('Sucesso', `"${game.nome}" importado com sucesso!`);
+            // Primeiro importa o jogo da IGDB
+            const importResult = await IgdbService.importGame(gameToImport.igdbId);
+            
+            // Depois atualiza com os dados comerciais
+            await ProdutoService.atualizarDadosComerciais(importResult.produtoId, {
+                preco: comercialData.preco,
+                estoque: comercialData.estoque,
+                desconto: comercialData.desconto,
+                ativo: comercialData.ativo,
+            });
+            
+            success('Sucesso', `"${gameToImport.nome}" importado e configurado com sucesso!`);
             
             setSearchResults(prev => prev.map(item => 
-                item.igdbId === game.igdbId 
+                item.igdbId === gameToImport.igdbId 
                     ? { ...item, jaImportado: true } 
                     : item
             ));
+            
+            setGameToImport(null);
         } catch (err) {
             console.error('Erro ao importar jogo:', err);
             toastError('Erro na importação', 'Não foi possível importar o jogo');
         } finally {
-            setLoading(false);
+            setImportLoading(false);
         }
     };
 
@@ -188,6 +211,16 @@ const AdminIGDB: React.FC = () => {
                     )
                 )}
             </div>
+
+            {/* Modal de Importação */}
+            {gameToImport && (
+                <IGDBImportModal
+                    game={gameToImport}
+                    onClose={() => setGameToImport(null)}
+                    onConfirm={handleConfirmImport}
+                    isLoading={importLoading}
+                />
+            )}
         </div>
     );
 };
