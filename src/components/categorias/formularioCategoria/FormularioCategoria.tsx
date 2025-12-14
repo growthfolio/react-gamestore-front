@@ -1,55 +1,74 @@
-import { useState, useEffect, ChangeEvent } from "react";
-import { RotatingLines } from "react-loader-spinner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Categoria from "../../../models/categorias/Categoria";
-import { buscar, atualizar, cadastrar } from "../../../services/Services";
+import categoriaService from "../../../services/categoria.service";
+import { useToast } from "../../../contexts/ToastContext";
+import { 
+  Tag, 
+  FloppyDisk, 
+  ArrowLeft,
+  TextT,
+  TextAlignLeft,
+  Image
+} from "@phosphor-icons/react";
+
+// Lista de emojis sugeridos para categorias
+const EMOJI_SUGESTOES = [
+  "🎮", "⚔️", "🔫", "🗺️", "♟️", "🧩", "🏎️", "⚽", 
+  "🥊", "🛩️", "🍄", "👾", "👻", "🎵", "🎨", "🃏",
+  "🏰", "🎯", "🎲", "🗡️", "👆", "��", "❓", "🎱"
+];
 
 function FormularioCategoria() {
-  const [categoria, setCategoria] = useState<Categoria>({
-    id: 0,
+  const [categoria, setCategoria] = useState<Partial<Categoria>>({
     tipo: "",
     descricao: "",
     ativo: true,
-    icone: "",
-    dataCriacao: ""
+    icone: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [carregando, setCarregando] = useState(false);
   const [errors, setErrors] = useState({
     tipo: "",
     descricao: "",
-    icone: "",
+    icone: ""
   });
+  
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
+  const isEditing = !!id;
 
-  async function buscarPorId(id: string) {
+  async function buscarPorId(categoriaId: string) {
     try {
-      await buscar(`/categorias/${id}`, setCategoria);
+      setCarregando(true);
+      const data = await categoriaService.buscarPorId(Number(categoriaId));
+      setCategoria(data);
     } catch (error) {
-      alert("Erro ao carregar os dados da categoria.");
+      console.error("Erro ao carregar categoria:", error);
+      toast.error("Erro", "Não foi possível carregar a categoria");
+      navigate("/categorias");
+    } finally {
+      setCarregando(false);
     }
   }
 
   useEffect(() => {
     if (id) buscarPorId(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  function validarFormulario() {
+  function validarFormulario(): boolean {
     let valid = true;
     const newErrors = { tipo: "", descricao: "", icone: "" };
 
-    if (!categoria.tipo || categoria.tipo.length < 3) {
-      newErrors.tipo = "O tipo deve ter pelo menos 3 caracteres.";
+    if (!categoria.tipo || categoria.tipo.trim().length < 3) {
+      newErrors.tipo = "O tipo deve ter pelo menos 3 caracteres";
       valid = false;
     }
 
     if (categoria.descricao && categoria.descricao.length > 255) {
-      newErrors.descricao = "A descrição não pode ultrapassar 255 caracteres.";
-      valid = false;
-    }
-
-    if (categoria.icone && !/^https?:\/\/.+\.(jpg|jpeg|png|svg)$/i.test(categoria.icone)) {
-      newErrors.icone = "O ícone deve ser uma URL válida de imagem (jpg, png, svg).";
+      newErrors.descricao = "A descrição não pode ultrapassar 255 caracteres";
       valid = false;
     }
 
@@ -59,129 +78,197 @@ function FormularioCategoria() {
 
   function atualizarEstado(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setCategoria({ ...categoria, [e.target.name]: e.target.value });
+    // Limpa erro do campo quando usuário digita
+    if (errors[e.target.name as keyof typeof errors]) {
+      setErrors({ ...errors, [e.target.name]: "" });
+    }
   }
 
-  async function gerarNovaCategoria(e: ChangeEvent<HTMLFormElement>) {
+  function selecionarEmoji(emoji: string) {
+    setCategoria({ ...categoria, icone: emoji });
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!validarFormulario()) return;
 
     setIsLoading(true);
     try {
-      if (id) {
-        await atualizar(`/categorias`, categoria, setCategoria);
-        alert("Categoria atualizada com sucesso!");
+      const dados = {
+        tipo: categoria.tipo!,
+        descricao: categoria.descricao || "",
+        icone: categoria.icone || ""
+      };
+
+      if (isEditing) {
+        await categoriaService.atualizar(Number(id), dados);
+        toast.success("Sucesso, "Categoria atualizada com sucesso");
       } else {
-        await cadastrar(`/categorias`, categoria, setCategoria);
-        alert("Categoria cadastrada com sucesso!");
+        await categoriaService.criar(dados);
+        toast.success("Sucesso, "Categoria criada com sucesso");
       }
       navigate("/categorias");
     } catch (error) {
-      alert("Erro ao salvar a categoria.");
+      console.error("Erro ao salvar categoria:", error);
+      toast.error("Erro", "Não foi possível salvar a categoria");
     } finally {
       setIsLoading(false);
     }
   }
 
+  if (carregando) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto my-8 max-w-lg">
-      <h1 className="text-3xl text-center font-bold mb-6">
-        {id ? "Editar Categoria" : "Cadastrar Categoria"}
-      </h1>
-      <form
-        className="bg-white p-6 rounded-lg shadow-lg flex flex-col gap-6"
-        onSubmit={gerarNovaCategoria}
-      >
-        {/* Tipo da Categoria */}
-        <div className="flex flex-col">
-          <label htmlFor="tipo" className="text-gray-700 font-medium">
-            Tipo da Categoria
-          </label>
-          <input
-            type="text"
-            name="tipo"
-            id="tipo"
-            value={categoria.tipo}
-            onChange={atualizarEstado}
-            placeholder="Digite o tipo da categoria"
-            className={`border rounded p-2 focus:outline-none focus:ring-2 ${
-              errors.tipo ? "border-red-500 focus:ring-red-400" : "focus:ring-indigo-400"
-            }`}
-          />
-          {errors.tipo && <p className="text-red-500 text-sm">{errors.tipo}</p>}
+    <div className="min-h-screen bg-neutral-950 py-8">
+      <div className="container mx-auto px-4 max-w-2xl">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link to="/categorias" className="btn-ghost p-2">
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 className="heading-gamer text-2xl md:text-3xl flex items-center gap-3">
+              <Tag className="text-secondary-500" size={28} />
+              {isEditing ? "Editar Categoria" : "Nova Categoria"}
+            </h1>
+            <p className="text-neutral-400 mt-1">
+              {isEditing ? "Atualize os dados da categoria" : "Preencha os dados para criar uma nova categoria"}
+            </p>
+          </div>
         </div>
 
-        {/* Descrição */}
-        <div className="flex flex-col">
-          <label htmlFor="descricao" className="text-gray-700 font-medium">
-            Descrição (Opcional)
-          </label>
-          <textarea
-            name="descricao"
-            id="descricao"
-            value={categoria.descricao}
-            onChange={atualizarEstado}
-            placeholder="Digite uma descrição para a categoria (opcional)"
-            className={`border rounded p-2 focus:outline-none focus:ring-2 ${
-              errors.descricao
-                ? "border-red-500 focus:ring-red-400"
-                : "focus:ring-indigo-400"
-            }`}
-          />
-          {errors.descricao && <p className="text-red-500 text-sm">{errors.descricao}</p>}
-        </div>
-
-        {/* Ícone */}
-        <div className="flex flex-col">
-          <label htmlFor="icone" className="text-gray-700 font-medium">
-            URL do Ícone (Opcional)
-          </label>
-          <input
-            type="text"
-            name="icone"
-            id="icone"
-            value={categoria.icone}
-            onChange={atualizarEstado}
-            placeholder="https://exemplo.com/imagem.png"
-            className={`border rounded p-2 focus:outline-none focus:ring-2 ${
-              errors.icone ? "border-red-500 focus:ring-red-400" : "focus:ring-indigo-400"
-            }`}
-          />
-          {errors.icone && <p className="text-red-500 text-sm">{errors.icone}</p>}
-        </div>
-
-        {/* Status */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="ativo"
-            id="ativo"
-            checked={categoria.ativo}
-            onChange={(e) => setCategoria({ ...categoria, ativo: e.target.checked })}
-            className="w-5 h-5"
-          />
-          <label htmlFor="ativo" className="text-gray-700 font-medium">
-            Categoria Ativa
-          </label>
-        </div>
-
-        {/* Botão de envio */}
-        <button
-          type="submit"
-          className="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center"
-        >
-          {isLoading ? (
-            <RotatingLines
-              strokeColor="white"
-              strokeWidth="5"
-              animationDuration="0.75"
-              width="24"
-              visible={true}
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="card-gaming p-6 space-y-6">
+          {/* Tipo */}
+          <div>
+            <label htmlFor="tipo" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+              <TextT size={16} />
+              Nome da Categoria *
+            </label>
+            <input
+              type="text"
+              name="tipo"
+              id="tipo"
+              value={categoria.tipo || ""}
+              onChange={atualizarEstado}
+              placeholder="Ex: Ação, RPG, Aventura..."
+              className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none transition-colors ${
+                errors.tipo 
+                  ? "border-red-500 focus:border-red-500" 
+                  : "border-neutral-700 focus:border-primary-500"
+              }`}
             />
-          ) : (
-            <span>{id ? "Atualizar" : "Cadastrar"}</span>
-          )}
-        </button>
-      </form>
+            {errors.tipo && (
+              <p className="text-red-400 text-sm mt-1">{errors.tipo}</p>
+            )}
+          </div>
+
+          {/* Descrição */}
+          <div>
+            <label htmlFor="descricao" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+              <TextAlignLeft size={16} />
+              Descrição
+            </label>
+            <textarea
+              name="descricao"
+              id="descricao"
+              value={categoria.descricao || ""}
+              onChange={atualizarEstado}
+              placeholder="Descrição opcional da categoria..."
+              rows={3}
+              className={`w-full px-4 py-3 bg-neutral-800 border rounded-gaming text-white placeholder-neutral-400 focus:outline-none resize-none transition-colors ${
+                errors.descricao 
+                  ? "border-red-500 focus:border-red-500" 
+                  : "border-neutral-700 focus:border-primary-500"
+              }`}
+            />
+            {errors.descricao && (
+              <p className="text-red-400 text-sm mt-1">{errors.descricao}</p>
+            )}
+            <p className="text-neutral-500 text-xs mt-1">
+              {categoria.descricao?.length || 0}/255 caracteres
+            </p>
+          </div>
+
+          {/* Ícone */}
+          <div>
+            <label htmlFor="icone" className="flex items-center gap-2 text-sm font-medium text-neutral-300 mb-2">
+              <Image size={16} />
+              Ícone
+            </label>
+            
+            {/* Preview do ícone */}
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-16 h-16 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-3xl">
+                {categoria.icone || "🎮"}
+              </div>
+              <input
+                type="text"
+                name="icone"
+                id="icone"
+                value={categoria.icone || ""}
+                onChange={atualizarEstado}
+                placeholder="Emoji ou URL de imagem"
+                className="flex-1 px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
+              />
+            </div>
+            
+            {/* Sugestões de emojis */}
+            <div className="space-y-2">
+              <p className="text-neutral-500 text-xs">Sugestões:</p>
+              <div className="flex flex-wrap gap-2">
+                {EMOJI_SUGESTOES.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => selecionarEmoji(emoji)}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${
+                      categoria.icone === emoji
+                        ? "bg-primary-500/20 border-2 border-primary-500"
+                        : "bg-neutral-800 border border-neutral-700 hover:border-neutral-600"
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Botões */}
+          <div className="flex gap-4 pt-4 border-t border-neutral-800">
+            <Link
+              to="/categorias"
+              className="btn-ghost flex-1 justify-center"
+            >
+              Cancelar
+            </Link>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="btn-primary flex-1 justify-center disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <FloppyDisk size={18} />
+                  {isEditing ? "Atualizar" : "Criar Categoria"}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
