@@ -2,32 +2,64 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { UserCircle, PencilSimple, FloppyDisk, X, Package, ArrowRight } from '@phosphor-icons/react';
+import { UserCircle, PencilSimple, FloppyDisk, X, Package, ArrowRight, Eye, EyeSlash } from '@phosphor-icons/react';
 
 const Perfil: React.FC = () => {
-  const { usuario, isAdmin } = useAuth();
+  const { usuario, isAdmin, atualizarUsuario } = useAuth();
   const { success, error } = useToast();
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nome: usuario?.nome || '',
-    usuario: usuario?.usuario || ''
+    usuario: usuario?.usuario || '',
+    senha: ''
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Validação básica
+    if (!formData.nome.trim()) {
+      error('Erro', 'Nome é obrigatório');
+      return;
+    }
+    if (!formData.usuario.trim()) {
+      error('Erro', 'Email é obrigatório');
+      return;
+    }
+    if (!formData.senha.trim()) {
+      error('Erro', 'Senha é obrigatória para confirmar as alterações');
+      return;
+    }
+    if (formData.senha.length < 8) {
+      error('Erro', 'Senha deve ter pelo menos 8 caracteres');
+      return;
+    }
+
     try {
-      // TODO: Implementar atualização do perfil via API
-      console.log('Salvando perfil:', formData);
+      setLoading(true);
+      await atualizarUsuario(usuario!.id, {
+        nome: formData.nome,
+        usuario: formData.usuario,
+        senha: formData.senha
+      });
+      
       success('Perfil atualizado!', 'Suas informações foram salvas com sucesso.');
+      setFormData(prev => ({ ...prev, senha: '' }));
       setEditMode(false);
-    } catch (err) {
-      error('Erro ao salvar', 'Não foi possível atualizar o perfil.');
+    } catch (err: unknown) {
+      console.error('Erro ao atualizar perfil:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Não foi possível atualizar o perfil.';
+      error('Erro ao salvar', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
     setFormData({
       nome: usuario?.nome || '',
-      usuario: usuario?.usuario || ''
+      usuario: usuario?.usuario || '',
+      senha: ''
     });
     setEditMode(false);
   };
@@ -74,13 +106,15 @@ const Perfil: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="btn-primary flex items-center gap-2"
+                  disabled={loading}
+                  className="btn-primary flex items-center gap-2 disabled:opacity-50"
                 >
                   <FloppyDisk size={16} />
-                  Salvar
+                  {loading ? 'Salvando...' : 'Salvar'}
                 </button>
                 <button
                   onClick={handleCancel}
+                  disabled={loading}
                   className="btn-outline flex items-center gap-2"
                 >
                   <X size={16} />
@@ -127,6 +161,34 @@ const Perfil: React.FC = () => {
                 </p>
               )}
             </div>
+
+            {/* Campo de Senha - apenas no modo de edição */}
+            {editMode && (
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Senha (obrigatória para confirmar alterações)
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.senha}
+                    onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+                    placeholder="Digite sua senha"
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Mínimo 8 caracteres, com maiúscula, minúscula e número
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
