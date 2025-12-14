@@ -20,6 +20,7 @@ import Perfil from './pages/perfil/Perfil';
 import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 import AdminProdutos from './pages/admin/produtos/AdminProdutos';
 import Checkout from './pages/checkout/Checkout';
+import Pedidos from './pages/pedidos/Pedidos';
 import BrandingDemo from './pages/BrandingDemo';
 import TypographyDemo from './pages/TypographyDemo';
 import FormDemo from './components/forms/FormDemo';
@@ -67,6 +68,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Perfil />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/pedidos" 
+                  element={
+                    <ProtectedRoute>
+                      <Pedidos />
                     </ProtectedRoute>
                   } 
                 />

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { SignOut, SignIn, UserCircle, ShoppingCart, Heart } from "@phosphor-icons/react";
+import { SignOut, SignIn, UserCircle, ShoppingCart, Heart, Package } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCarrinho } from "../../contexts/CarrinhoContext";
 import { useFavoritos } from "../../contexts/FavoritosContext";
@@ -112,6 +112,15 @@ function NavBar() {
                       {totalItens}
                     </span>
                   )}
+                </Link>
+
+                {/* Meus Pedidos */}
+                <Link
+                  to="/pedidos"
+                  className="hover:text-accent-400 py-2 px-3 rounded-gaming transition-all flex items-center hover:bg-neutral-800"
+                  title="Meus Pedidos"
+                >
+                  <Package size={22} weight="bold" />
                 </Link>
 
                 {/* Perfil */}

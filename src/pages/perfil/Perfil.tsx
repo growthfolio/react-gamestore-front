@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { UserCircle, PencilSimple, FloppyDisk, X } from '@phosphor-icons/react';
+import { UserCircle, PencilSimple, FloppyDisk, X, Package, ArrowRight } from '@phosphor-icons/react';
 
 const Perfil: React.FC = () => {
   const { usuario, isAdmin } = useAuth();
@@ -144,6 +145,26 @@ const Perfil: React.FC = () => {
                 {isAdmin ? 'Administrador' : 'Usuário Comum'}
               </p>
             </div>
+          </div>
+
+          {/* Seção Meus Pedidos */}
+          <div className="mt-8 pt-8 border-t border-neutral-800">
+            <h2 className="heading-md text-accent-400 mb-4 flex items-center gap-2">
+              <Package size={24} />
+              Meus Pedidos
+            </h2>
+            <Link
+              to="/pedidos"
+              className="block p-4 bg-neutral-800 hover:bg-neutral-700 rounded-gaming transition-colors group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-white mb-1">Ver Histórico de Pedidos</h3>
+                  <p className="text-sm text-neutral-400">Acompanhe o status das suas compras</p>
+                </div>
+                <ArrowRight size={20} className="text-accent-500 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
           </div>
 
           {/* Seção Admin */}
