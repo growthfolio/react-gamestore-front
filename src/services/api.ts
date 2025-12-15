@@ -33,10 +33,13 @@ api.interceptors.response.use(
       // Erro de resposta do servidor
       switch (error.response.status) {
         case 401:
-          // Token inválido ou expirado - apenas limpa o storage, sem redirecionar
-          localStorage.removeItem('token');
-          localStorage.removeItem('usuario');
-          // Removido: window.location.href = '/login';
+          // Token inválido ou expirado - só redireciona se havia token
+          const token = localStorage.getItem('token');
+          if (token) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = '/login';
+          }
           break;
         case 403:
           console.error('Acesso negado');
