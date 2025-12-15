@@ -139,10 +139,10 @@ function NavBar() {
                 <Link
                   to="/perfil"
                   className="hover:text-secondary-400 py-2 px-3 rounded-gaming transition-all flex items-center gap-2 hover:bg-neutral-800"
-                  title={usuario?.nome}
+                  title={usuario?.nickname}
                 >
                   <UserCircle size={22} weight="bold" />
-                  <span className="hidden md:inline body-sm">{usuario?.nome.split(' ')[0]}</span>
+                  <span className="hidden md:inline body-sm">{usuario?.nickname}</span>
                 </Link>
 
                 {/* Logout */}

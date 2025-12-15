@@ -10,7 +10,7 @@ function Login() {
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    usuario: '',
+    email: '',
     senha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -21,14 +21,14 @@ function Login() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setErro(''); // Limpa erro ao digitar
+    setErro('');
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErro('');
 
-    if (!formData.usuario || !formData.senha) {
+    if (!formData.email || !formData.senha) {
       setErro('Preencha todos os campos');
       return;
     }
@@ -37,8 +37,7 @@ function Login() {
       setIsLoading(true);
       await login(formData);
 
-      // Redireciona para a página anterior ou home
-      const from = (location.state as any)?.from?.pathname || '/home';
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/home';
       navigate(from, { replace: true });
     } catch (error: unknown) {
       console.error('Erro ao fazer login:', error);
@@ -69,17 +68,17 @@ function Login() {
           )}
 
           <div>
-            <label htmlFor="usuario" className="label-gaming block mb-2">
-              Usuário
+            <label htmlFor="email" className="label-gaming block mb-2">
+              Email
             </label>
             <input
-              type="text"
-              id="usuario"
-              name="usuario"
-              value={formData.usuario}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="input-gaming w-full"
-              placeholder="Digite seu usuário"
+              placeholder="Digite seu email"
               disabled={isLoading}
             />
           </div>

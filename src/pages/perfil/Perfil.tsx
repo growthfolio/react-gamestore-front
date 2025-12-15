@@ -11,18 +11,17 @@ const Perfil: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    nome: usuario?.nome || '',
-    usuario: usuario?.usuario || '',
+    nickname: usuario?.nickname || '',
+    email: usuario?.email || '',
     senha: ''
   });
 
   const handleSave = async () => {
-    // Validação básica
-    if (!formData.nome.trim()) {
-      error('Erro', 'Nome é obrigatório');
+    if (!formData.nickname.trim()) {
+      error('Erro', 'Nickname é obrigatório');
       return;
     }
-    if (!formData.usuario.trim()) {
+    if (!formData.email.trim()) {
       error('Erro', 'Email é obrigatório');
       return;
     }
@@ -38,8 +37,8 @@ const Perfil: React.FC = () => {
     try {
       setLoading(true);
       await atualizarUsuario(usuario!.id, {
-        nome: formData.nome,
-        usuario: formData.usuario,
+        nickname: formData.nickname,
+        email: formData.email,
         senha: formData.senha
       });
       
@@ -57,8 +56,8 @@ const Perfil: React.FC = () => {
 
   const handleCancel = () => {
     setFormData({
-      nome: usuario?.nome || '',
-      usuario: usuario?.usuario || '',
+      nickname: usuario?.nickname || '',
+      email: usuario?.email || '',
       senha: ''
     });
     setEditMode(false);
@@ -78,7 +77,6 @@ const Perfil: React.FC = () => {
     <div className="container mx-auto px-6 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-neutral-900 border border-neutral-800 rounded-gaming p-8 shadow-card-gaming">
-          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-gaming rounded-full flex items-center justify-center">
@@ -124,45 +122,43 @@ const Perfil: React.FC = () => {
             )}
           </div>
 
-          {/* Informações do Perfil */}
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Nome Completo
+                Nickname
               </label>
               {editMode ? (
                 <input
                   type="text"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  value={formData.nickname}
+                  onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                   className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
                 />
               ) : (
                 <p className="text-white bg-neutral-800 px-4 py-3 rounded-gaming">
-                  {usuario.nome}
+                  {usuario.nickname}
                 </p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Email/Usuário
+                Email
               </label>
               {editMode ? (
                 <input
-                  type="text"
-                  value={formData.usuario}
-                  onChange={(e) => setFormData({ ...formData, usuario: e.target.value })}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
                 />
               ) : (
                 <p className="text-white bg-neutral-800 px-4 py-3 rounded-gaming">
-                  {usuario.usuario}
+                  {usuario.email}
                 </p>
               )}
             </div>
 
-            {/* Campo de Senha - apenas no modo de edição */}
             {editMode && (
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2">
@@ -209,7 +205,6 @@ const Perfil: React.FC = () => {
             </div>
           </div>
 
-          {/* Seção Meus Pedidos */}
           <div className="mt-8 pt-8 border-t border-neutral-800">
             <h2 className="heading-md text-accent-400 mb-4 flex items-center gap-2">
               <Package size={24} />
@@ -229,7 +224,6 @@ const Perfil: React.FC = () => {
             </Link>
           </div>
 
-          {/* Seção Admin */}
           {isAdmin && (
             <div className="mt-8 pt-8 border-t border-neutral-800">
               <h2 className="heading-md text-secondary-400 mb-4">Acesso Administrativo</h2>

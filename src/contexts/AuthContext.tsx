@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { Usuario, LoginRequest, CadastroRequest, LoginResponse } from '../services/auth.service';
 import { useToast } from './ToastContext';
@@ -35,7 +34,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const toast = useToast();
 
-  // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
     const carregarUsuario = () => {
       const usuarioLogado = authService.getUsuarioLogado();
@@ -54,14 +52,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUsuario({
         id: response.id,
-        nome: response.nome,
-        usuario: response.usuario,
+        nickname: response.nickname,
+        email: response.email,
         foto: response.foto,
         tipo,
         roles: response.roles
       });
       
-      toast.success('Login realizado!', `Bem-vindo, ${response.nome}!`);
+      toast.success('Login realizado!', `Bem-vindo, ${response.nickname}!`);
       return response;
     } catch (error) {
       toast.error('Falha no login', getErrorMessage(error, ErrorMessages.loginFailed));

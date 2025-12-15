@@ -9,8 +9,8 @@ function Cadastro() {
   const { cadastrar } = useAuth();
 
   const [formData, setFormData] = useState({
-    nome: '',
-    usuario: '',
+    nickname: '',
+    email: '',
     senha: '',
     confirmarSenha: '',
     foto: '',
@@ -28,23 +28,18 @@ function Cadastro() {
   };
 
   const validarFormulario = (): boolean => {
-    if (!formData.nome || !formData.usuario || !formData.senha) {
+    if (!formData.nickname || !formData.email || !formData.senha) {
       setErro('Preencha todos os campos obrigatórios');
       return false;
     }
 
-    if (formData.nome.length < 3) {
-      setErro('Nome deve ter pelo menos 3 caracteres');
+    if (formData.nickname.length < 3) {
+      setErro('Nickname deve ter pelo menos 3 caracteres');
       return false;
     }
 
-    if (formData.usuario.length < 3) {
-      setErro('Usuário deve ter pelo menos 3 caracteres');
-      return false;
-    }
-
-    if (formData.senha.length < 6) {
-      setErro('Senha deve ter pelo menos 6 caracteres');
+    if (formData.senha.length < 8) {
+      setErro('Senha deve ter pelo menos 8 caracteres');
       return false;
     }
 
@@ -65,8 +60,8 @@ function Cadastro() {
     try {
       setIsLoading(true);
       await cadastrar({
-        nome: formData.nome,
-        usuario: formData.usuario,
+        nickname: formData.nickname,
+        email: formData.email,
         senha: formData.senha,
         foto: formData.foto || undefined,
       });
@@ -110,33 +105,33 @@ function Cadastro() {
           )}
 
           <div>
-            <label htmlFor="nome" className="label-gaming block mb-2">
-              Nome Completo *
+            <label htmlFor="nickname" className="label-gaming block mb-2">
+              Nickname *
             </label>
             <input
               type="text"
-              id="nome"
-              name="nome"
-              value={formData.nome}
+              id="nickname"
+              name="nickname"
+              value={formData.nickname}
               onChange={handleChange}
               className="input-gaming w-full"
-              placeholder="Digite seu nome completo"
+              placeholder="Como você quer ser chamado"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label htmlFor="usuario" className="label-gaming block mb-2">
-              Nome de Usuário *
+            <label htmlFor="email" className="label-gaming block mb-2">
+              Email *
             </label>
             <input
-              type="text"
-              id="usuario"
-              name="usuario"
-              value={formData.usuario}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="input-gaming w-full"
-              placeholder="Digite um nome de usuário único"
+              placeholder="Digite seu email"
               disabled={isLoading}
             />
           </div>
@@ -152,7 +147,7 @@ function Cadastro() {
               value={formData.senha}
               onChange={handleChange}
               className="input-gaming w-full"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               disabled={isLoading}
             />
           </div>
