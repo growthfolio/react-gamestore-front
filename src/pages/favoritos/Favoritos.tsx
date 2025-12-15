@@ -16,17 +16,13 @@ const Favoritos = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!usuario) {
-            navigate('/login');
-            return;
-        }
         carregarProdutosFavoritos();
-    }, [favoritos, usuario, navigate]);
+    }, [favoritos]);
 
     const carregarProdutosFavoritos = async () => {
         try {
             setLoading(true);
-            if (favoritos.length === 0) {
+            if (!usuario || favoritos.length === 0) {
                 setProdutos([]);
                 return;
             }

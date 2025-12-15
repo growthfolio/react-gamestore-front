@@ -2,14 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
 import categoriaService from "../../../services/categoria.service";
-import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X, Plus, Eye } from "@phosphor-icons/react";
+import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X, Plus } from "@phosphor-icons/react";
 import { Produto } from "../../../models/produtos/Produto";
 import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
 import FormularioProduto from "../formularioProduto/FormularioProduto";
 import DeletarProduto from "../deletarProdutos/DeletarProduto";
-import ProductQuickView from "../ProductQuickView";
-import LoginSuggestionModal from "../../modals/LoginSuggestionModal";
 
 function ListaProdutos() {
   const { isAdmin } = useAuth();
@@ -29,10 +27,6 @@ function ListaProdutos() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [produtoParaEditar, setProdutoParaEditar] = useState<number | undefined>(undefined);
   const [produtoParaDeletar, setProdutoParaDeletar] = useState<Produto | null>(null);
-  const [showQuickView, setShowQuickView] = useState(false);
-  const [produtoQuickView, setProdutoQuickView] = useState<Produto | null>(null);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginAction, setLoginAction] = useState<'favorite' | 'cart' | 'checkout'>('cart');
   const itensPorPagina = 12;
 
   async function buscarProdutos(pagina: number = 0, termoBusca: string = "", catId: string = "", sort: string = "nome,asc") {
@@ -116,17 +110,6 @@ function ListaProdutos() {
     const novaOrdenacao = e.target.value;
     setOrdenacao(novaOrdenacao);
     buscarProdutos(paginaAtual, busca, categoriaId, novaOrdenacao);
-  };
-
-  const handleQuickView = (produto: Produto) => {
-    setProdutoQuickView(produto);
-    setShowQuickView(true);
-  };
-
-  const handleLoginRequired = (action: 'favorite' | 'cart') => {
-    setLoginAction(action);
-    setShowLoginModal(true);
-    setShowQuickView(false);
   };
 
   const irParaPaginaAnterior = () => {
@@ -421,14 +404,6 @@ function ListaProdutos() {
 
                     {/* Ações */}
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleQuickView(produto)}
-                        className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 flex-1 justify-center text-sm py-2 px-3 rounded transition-colors border border-neutral-600 flex items-center gap-1"
-                      >
-                        <Eye size={16} />
-                        Preview
-                      </button>
-                      
                       <Link
                         to={`/produtos/${produto.id}`}
                         className="btn-primary flex-1 justify-center text-sm py-2"
@@ -542,22 +517,6 @@ function ListaProdutos() {
             }}
           />
         )}
-
-        {/* Preview Rápido */}
-        <ProductQuickView
-          produto={produtoQuickView}
-          isOpen={showQuickView}
-          onClose={() => setShowQuickView(false)}
-          onLoginRequired={handleLoginRequired}
-        />
-
-        {/* Modal de Sugestão de Login */}
-        <LoginSuggestionModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          action={loginAction}
-          productName={produtoQuickView?.nome}
-        />
       </div>
     </div>
   );

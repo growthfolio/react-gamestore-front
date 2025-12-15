@@ -13,11 +13,7 @@ const Carrinho = () => {
     const { itens, atualizarItem, removerItem, limparCarrinho, totalItens } = useCarrinho();
     const toast = useToast();
 
-    useEffect(() => {
-        if (!usuario) {
-            navigate('/login');
-        }
-    }, [usuario, navigate]);
+    // Removido redirecionamento - carrinho pode ser visto sem login (vazio)
 
     const calcularTotal = () => {
         return itens.reduce((total: number, item: CarrinhoItem) => {
