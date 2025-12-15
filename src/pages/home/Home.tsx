@@ -391,7 +391,7 @@ function Home() {
                 <div className="relative my-12 overflow-hidden">
                     {/* Background com gradiente gaming */}
                     <div className="absolute inset-0 bg-gradient-to-r from-error-600/90 via-error-500/80 to-error-600/90"></div>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+                    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle,_white_1px,_transparent_1px)] bg-[length:20px_20px]"></div>
                     
                     {/* Efeitos de borda neon */}
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-400 to-transparent"></div>
@@ -402,11 +402,11 @@ function Home() {
                         <div className="text-center mb-10">
                             <div className="inline-flex items-center gap-4 mb-4">
                                 <div className="w-16 h-[2px] bg-gradient-to-r from-transparent to-accent-400"></div>
-                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse drop-shadow-[0_0_8px_rgba(0,255,75,0.6)]" />
-                                <h2 className="heading-gamer heading-lg text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse" />
+                                <h2 className="heading-gamer heading-lg text-white">
                                     Ofertas Relâmpago
                                 </h2>
-                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse drop-shadow-[0_0_8px_rgba(0,255,75,0.6)]" />
+                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse" />
                                 <div className="w-16 h-[2px] bg-gradient-to-l from-transparent to-accent-400"></div>
                             </div>
                             
@@ -489,7 +489,7 @@ function Home() {
                                     } group-hover:scale-110 transition-transform duration-500`}></div>
                                     
                                     {/* Padrão de fundo */}
-                                    <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.3\" fill-rule=\"evenodd\"%3E%3Cpath d=\"M0 40L40 0H20L0 20M40 40V20L20 40\"/%3E%3C/g%3E%3C/svg%3E')]"></div>
+                                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_25%,rgba(255,255,255,0.1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.1)_75%)] bg-[length:20px_20px]"></div>
                                     
                                     {/* Conteúdo */}
                                     <div className="relative h-full flex flex-col items-center justify-center p-4 text-white">
@@ -505,8 +505,7 @@ function Home() {
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                                     
                                     {/* Borda brilhante no hover */}
-                                    <div className="absolute inset-0 rounded-gaming opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                                         style={{boxShadow: 'inset 0 0 20px rgba(135, 0, 255, 0.3)'}}></div>
+                                    <div className="absolute inset-0 rounded-gaming opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-[inset_0_0_20px_rgba(135,0,255,0.3)]"></div>
                                 </div>
                                 
                                 {/* Sombra glow no hover */}
