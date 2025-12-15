@@ -33,16 +33,21 @@ api.interceptors.response.use(
       // Erro de resposta do servidor
       switch (error.response.status) {
         case 401:
-          // Token inválido ou expirado - só redireciona se havia token
+          // Token inválido/expirado - só redireciona se havia token
           const token = localStorage.getItem('token');
           if (token) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('usuario');
-            window.location.href = '/login';
+            // Verifica se é realmente token inválido (não apenas falta de permissão)
+            const errorMessage = error.response.data?.message || '';
+            if (errorMessage.includes('token') || errorMessage.includes('expired') || errorMessage.includes('invalid')) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('usuario');
+              window.location.href = '/login';
+            }
           }
           break;
         case 403:
-          console.error('Acesso negado');
+          // Acesso negado - usuário logado mas sem permissão
+          console.error('Acesso negado - sem permissão para este recurso');
           break;
         case 404:
           console.error('Recurso não encontrado');
