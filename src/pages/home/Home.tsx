@@ -389,38 +389,36 @@ function Home() {
             {/* Ofertas Especiais com Countdown */}
             {produtosOfertas.length > 0 && (
                 <div className="relative my-12 overflow-hidden">
-                    {/* Background com gradiente gaming */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-error-600/90 via-error-500/80 to-error-600/90"></div>
-                    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle,_white_1px,_transparent_1px)] bg-[length:20px_20px]"></div>
+                    {/* Background com gradiente gaming roxo/ciano */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-secondary-900/95 via-neutral-900/90 to-secondary-900/95"></div>
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle,_#00FFFF_1px,_transparent_1px)] bg-[length:24px_24px]"></div>
                     
                     {/* Efeitos de borda neon */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-400 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-400 to-transparent"></div>
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-500 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-secondary-500 to-transparent"></div>
                     
-                    <div className="relative container mx-auto px-6 py-12">
-                        {/* Header da seção */}
-                        <div className="text-center mb-10">
-                            <div className="inline-flex items-center gap-4 mb-4">
-                                <div className="w-16 h-[2px] bg-gradient-to-r from-transparent to-accent-400"></div>
-                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse" />
-                                <h2 className="heading-gamer heading-lg text-white">
+                    <div className="relative container mx-auto px-6 py-10">
+                        {/* Header da seção com timer inline */}
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                            {/* Título */}
+                            <div className="flex items-center gap-3">
+                                <Fire size={28} weight="fill" className="text-accent-400 animate-pulse" />
+                                <h2 className="heading-gamer heading-lg text-white text-glow-accent">
                                     Ofertas Relâmpago
                                 </h2>
-                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse" />
-                                <div className="w-16 h-[2px] bg-gradient-to-l from-transparent to-accent-400"></div>
                             </div>
                             
-                            {/* Countdown estilizado */}
-                            <div className="inline-flex items-center gap-4 bg-neutral-900/80 backdrop-blur-sm px-6 py-3 rounded-full border border-accent-500/50 shadow-glow-neon">
-                                <Clock size={24} weight="fill" className="text-accent-400" />
-                                <span className="text-neutral-300 body-base">Termina em:</span>
-                                <div className="flex items-center gap-2">
+                            {/* Countdown compacto */}
+                            <div className="flex items-center gap-2 bg-neutral-900/60 backdrop-blur-sm px-4 py-2 rounded-gaming border border-accent-500/30">
+                                <Clock size={18} weight="fill" className="text-accent-400" />
+                                <span className="text-neutral-400 text-sm hidden sm:inline">Termina em</span>
+                                <div className="flex items-center gap-1">
                                     {formatTime(timeLeft).split(':').map((unit, idx) => (
-                                        <div key={idx} className="flex items-center gap-2">
-                                            <span className="font-accent font-bold text-xl text-accent-400 bg-neutral-800 px-3 py-1 rounded-lg min-w-[3rem] text-center">
+                                        <div key={idx} className="flex items-center">
+                                            <span className="font-mono font-bold text-base text-accent-400 bg-neutral-800/80 px-2 py-0.5 rounded min-w-[2rem] text-center">
                                                 {unit}
                                             </span>
-                                            {idx < 2 && <span className="text-accent-400 font-bold">:</span>}
+                                            {idx < 2 && <span className="text-accent-500/60 text-sm mx-0.5">:</span>}
                                         </div>
                                     ))}
                                 </div>
@@ -428,20 +426,20 @@ function Home() {
                         </div>
                         
                         {/* Grid de produtos */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                             {produtosOfertas.map(produto => (
                                 <ProductCard key={produto.id} produto={produto} />
                             ))}
                         </div>
                         
                         {/* CTA */}
-                        <div className="text-center mt-8">
+                        <div className="text-center mt-6">
                             <button
                                 onClick={() => navigate('/produtos?ofertas=true')}
-                                className="btn-accent px-8 py-3 inline-flex items-center gap-2"
+                                className="group px-6 py-2.5 bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 rounded-gaming font-gaming text-sm uppercase tracking-wide transition-all duration-300 shadow-lg shadow-accent-500/20 hover:shadow-accent-500/40 inline-flex items-center gap-2"
                             >
-                                <span className="cta-gaming">Ver Todas as Ofertas</span>
-                                <Fire size={20} weight="fill" />
+                                <span>Ver Todas as Ofertas</span>
+                                <Fire size={18} weight="fill" className="group-hover:animate-pulse" />
                             </button>
                         </div>
                     </div>

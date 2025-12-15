@@ -187,42 +187,72 @@ const AdminIGDB: React.FC = () => {
 
                 {/* Results Section */}
                 {searchResults.length > 0 ? (
-                    <div className="space-y-4">
-                        <h2 className="heading-gamer heading-sm text-primary-400 flex items-center gap-2">
-                            {searchTerm ? 'Resultados da Busca' : 'Jogos Populares'}
-                            <span className="badge-gaming text-neutral-500 bg-neutral-900 px-2 py-1 rounded-full border border-neutral-800">
-                                {searchResults.length}
-                            </span>
-                        </h2>
+                    <div className="space-y-3">
+                        {/* Header com título e paginação superior */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div className="flex items-center gap-3">
+                                <h2 className="heading-gamer heading-sm text-primary-400">
+                                    {searchTerm ? 'Resultados da Busca' : 'Jogos Populares'}
+                                </h2>
+                                {searchTerm && (
+                                    <span className="text-xs px-2 py-1 rounded bg-primary-500/20 text-primary-300 border border-primary-500/30">
+                                        "{searchTerm}"
+                                    </span>
+                                )}
+                            </div>
+                            
+                            {/* Paginação Superior - Compacta */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-neutral-500 text-sm">
+                                    {searchResults.length} jogos · Página {page}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => handlePageChange(page - 1)}
+                                        disabled={page === 1 || loading}
+                                        className="p-1.5 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <CaretLeft size={16} className="text-neutral-300" />
+                                    </button>
+                                    <button
+                                        onClick={() => handlePageChange(page + 1)}
+                                        disabled={loading || searchResults.length < 20}
+                                        className="p-1.5 rounded bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <CaretRight size={16} className="text-neutral-300" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         
                         <IGDBGameTable 
                             games={searchResults} 
                             onImport={handleImportGame} 
                         />
 
-                        {/* Pagination Controls */}
-                        <div className="flex justify-center items-center gap-4 mt-6 pb-8">
+                        {/* Paginação Inferior - Completa */}
+                        <div className="flex justify-center items-center gap-3 py-4">
                             <FormButton
                                 onClick={() => handlePageChange(page - 1)}
                                 disabled={page === 1 || loading}
                                 variant="ghost"
-                                size="md"
-                                icon={<CaretLeft size={20} />}
+                                size="sm"
+                                icon={<CaretLeft size={18} />}
                             >
-                                ANTERIOR
+                                Anterior
                             </FormButton>
-                            <span className="text-neutral-400 font-gaming text-lg px-4">
-                                Página <span className="text-neutral-0 font-bold text-xl">{page}</span>
+                            <span className="text-neutral-400 font-gaming text-sm px-3">
+                                Página <span className="text-primary-400 font-bold">{page}</span>
                             </span>
                             <FormButton
                                 onClick={() => handlePageChange(page + 1)}
                                 disabled={loading || searchResults.length < 20}
                                 variant="ghost"
-                                size="md"
-                                icon={<CaretRight size={20} />}
+                                size="sm"
+                                icon={<CaretRight size={18} />}
                                 iconPosition="right"
                             >
-                                PRÓXIMO
+                                Próximo
                             </FormButton>
                         </div>
                     </div>
