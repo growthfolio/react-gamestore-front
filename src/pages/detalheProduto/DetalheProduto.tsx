@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Dna } from 'react-loader-spinner';
-import { ShoppingCart, Heart, Star, ArrowLeft } from '@phosphor-icons/react';
+import { ShoppingCart, Heart, Star, ArrowLeft, User } from '@phosphor-icons/react';
 import { Produto } from '../../models/produtos/Produto';
 import produtoService from '../../services/produto.service';
 import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/avaliacao.service';
@@ -11,6 +11,7 @@ import { useFavoritos } from '../../contexts/FavoritosContext';
 import { useToast } from '../../contexts/ToastContext';
 import { getErrorMessage, ErrorMessages } from '../../utils/errorHandler';
 import FormularioAvaliacao from '../../components/avaliacoes/formularioAvaliacao/FormularioAvaliacao';
+import LoginSuggestionModal from '../../components/modals/LoginSuggestionModal';
 
 function DetalheProduto() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,8 @@ function DetalheProduto() {
   const [quantidade, setQuantidade] = useState(1);
   const [imagemAtual, setImagemAtual] = useState(0);
   const [favorito, setFavorito] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginAction, setLoginAction] = useState<'favorite' | 'cart' | 'checkout'>('cart');
 
   useEffect(() => {
     if (id) {
@@ -70,8 +73,8 @@ function DetalheProduto() {
 
   async function handleAdicionarCarrinho() {
     if (!isAuthenticated) {
-      toast.warning('Login necessário', 'Faça login para adicionar produtos ao carrinho');
-      navigate('/login');
+      setLoginAction('cart');
+      setShowLoginModal(true);
       return;
     }
 
@@ -89,8 +92,8 @@ function DetalheProduto() {
 
   async function handleToggleFavorito() {
     if (!isAuthenticated) {
-      toast.warning('Login necessário', 'Faça login para favoritar produtos');
-      navigate('/login');
+      setLoginAction('favorite');
+      setShowLoginModal(true);
       return;
     }
 
@@ -283,7 +286,7 @@ function DetalheProduto() {
                   className="btn-primary flex-1 py-3 px-6 flex items-center justify-center gap-2"
                 >
                   <ShoppingCart size={24} weight="bold" />
-                  Adicionar ao Carrinho
+                  {isAuthenticated ? 'Adicionar ao Carrinho' : 'Fazer Login para Comprar'}
                 </button>
 
                 <button
@@ -298,6 +301,27 @@ function DetalheProduto() {
                   <Heart size={24} weight={favorito ? 'fill' : 'regular'} />
                 </button>
               </div>
+
+              {/* Call to Action para usuários não logados */}
+              {!isAuthenticated && (
+                <div className="bg-primary-500/10 border border-primary-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <User size={24} className="text-primary-400" />
+                    <h3 className="text-primary-400 font-semibold">Crie sua conta e aproveite!</h3>
+                  </div>
+                  <p className="text-neutral-300 text-sm mb-3">
+                    Faça login ou cadastre-se para adicionar produtos ao carrinho, favoritar jogos e acompanhar seus pedidos.
+                  </p>
+                  <div className="flex gap-2">
+                    <Link to="/login" className="btn-primary text-sm py-2 px-4 flex-1 text-center">
+                      Fazer Login
+                    </Link>
+                    <Link to="/cadastro" className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm py-2 px-4 rounded-lg transition-colors border border-neutral-600 flex-1 text-center">
+                      Criar Conta
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg">
@@ -355,6 +379,14 @@ function DetalheProduto() {
         )}
       </div>
       </div>
+
+      {/* Modal de Sugestão de Login */}
+      <LoginSuggestionModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        action={loginAction}
+        productName={produto?.nome}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { ShoppingCart, GameController, Heart, Star, ArrowUp, Fire, Clock, Sparkl
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
 import { useAuth } from '../../contexts/AuthContext';
+import LoginSuggestionModal from '../../components/modals/LoginSuggestionModal';
 
 function Home() {
     const navigate = useNavigate();
@@ -29,6 +30,9 @@ function Home() {
     const [activeTab, setActiveTab] = useState<'destaque' | 'lancamentos'>('destaque');
     const [email, setEmail] = useState('');
     const [timeLeft, setTimeLeft] = useState(86400); // 24 horas em segundos
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginAction, setLoginAction] = useState<'favorite' | 'cart' | 'checkout'>('cart');
+    const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null);
 
     useEffect(() => {
         carregarDados();
@@ -90,7 +94,9 @@ function Home() {
     const handleAddToCart = async (produto: Produto, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!isAuthenticated) {
-            navigate('/login');
+            setSelectedProduct(produto);
+            setLoginAction('cart');
+            setShowLoginModal(true);
             return;
         }
         try {
@@ -103,7 +109,11 @@ function Home() {
     const handleToggleFavorito = async (produtoId: number, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!isAuthenticated) {
-            navigate('/login');
+            const produto = [...produtosDestaque, ...produtosOfertas, ...produtosLancamentos]
+                .find(p => p.id === produtoId);
+            setSelectedProduct(produto || null);
+            setLoginAction('favorite');
+            setShowLoginModal(true);
             return;
         }
         try {
@@ -556,6 +566,14 @@ function Home() {
                     <ArrowUp size={24} weight="bold" />
                 </button>
             )}
+
+            {/* Modal de Sugestão de Login */}
+            <LoginSuggestionModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                action={loginAction}
+                productName={selectedProduct?.nome}
+            />
         </>
     );
 }
