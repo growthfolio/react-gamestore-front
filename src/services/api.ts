@@ -37,7 +37,7 @@ api.interceptors.response.use(
           const token = localStorage.getItem('token');
           if (token) {
             // Verifica se é realmente token inválido (não apenas falta de permissão)
-            const errorMessage = error.response.data?.message || '';
+            const errorMessage = (error.response.data as any)?.message || '';
             if (errorMessage.includes('token') || errorMessage.includes('expired') || errorMessage.includes('invalid')) {
               localStorage.removeItem('token');
               localStorage.removeItem('usuario');
