@@ -123,3 +123,79 @@ html {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
+
+/* Ofertas Relâmpago - Efeitos especiais */
+@keyframes fire-glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(0, 255, 75, 0.6));
+    }
+    50% {
+        filter: drop-shadow(0 0 16px rgba(0, 255, 75, 0.9));
+    }
+}
+
+.fire-icon-animated {
+    animation: fire-glow 1.5s ease-in-out infinite;
+}
+
+/* Countdown timer pulse */
+@keyframes countdown-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.countdown-unit {
+    animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+/* Categoria card hover effect */
+@keyframes category-shine {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.category-card-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.category-card-shine:hover::after {
+    opacity: 1;
+    animation: category-shine 1.5s ease-in-out;
+}
+
+/* Gradiente animado para seção de ofertas */
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animated-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+}

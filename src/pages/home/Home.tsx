@@ -388,59 +388,144 @@ function Home() {
 
             {/* Ofertas Especiais com Countdown */}
             {produtosOfertas.length > 0 && (
-                <div className="bg-gradient-to-r from-red-600 to-red-800 text-white py-12 my-12">
-                    <div className="container mx-auto px-6">
-                        <div className="text-center mb-8">
-                            <div className="flex items-center justify-center gap-3 mb-4">
-                                <Fire size={32} weight="fill" className="animate-pulse text-accent-400" />
-                                <h2 className="heading-gamer heading-lg text-glow-accent">Ofertas Relâmpago</h2>
-                                <Fire size={32} weight="fill" className="animate-pulse text-accent-400" />
+                <div className="relative my-12 overflow-hidden">
+                    {/* Background com gradiente gaming */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-error-600/90 via-error-500/80 to-error-600/90"></div>
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+                    
+                    {/* Efeitos de borda neon */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-400 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent-400 to-transparent"></div>
+                    
+                    <div className="relative container mx-auto px-6 py-12">
+                        {/* Header da seção */}
+                        <div className="text-center mb-10">
+                            <div className="inline-flex items-center gap-4 mb-4">
+                                <div className="w-16 h-[2px] bg-gradient-to-r from-transparent to-accent-400"></div>
+                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse drop-shadow-[0_0_8px_rgba(0,255,75,0.6)]" />
+                                <h2 className="heading-gamer heading-lg text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                                    Ofertas Relâmpago
+                                </h2>
+                                <Fire size={36} weight="fill" className="text-accent-400 animate-pulse drop-shadow-[0_0_8px_rgba(0,255,75,0.6)]" />
+                                <div className="w-16 h-[2px] bg-gradient-to-l from-transparent to-accent-400"></div>
                             </div>
-                            <div className="flex items-center justify-center gap-3">
-                                <Clock size={28} weight="fill" className="text-primary-400" />
-                                <span className="heading-sm text-primary-400 font-accent">Termina em: {formatTime(timeLeft)}</span>
+                            
+                            {/* Countdown estilizado */}
+                            <div className="inline-flex items-center gap-4 bg-neutral-900/80 backdrop-blur-sm px-6 py-3 rounded-full border border-accent-500/50 shadow-glow-neon">
+                                <Clock size={24} weight="fill" className="text-accent-400" />
+                                <span className="text-neutral-300 body-base">Termina em:</span>
+                                <div className="flex items-center gap-2">
+                                    {formatTime(timeLeft).split(':').map((unit, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <span className="font-accent font-bold text-xl text-accent-400 bg-neutral-800 px-3 py-1 rounded-lg min-w-[3rem] text-center">
+                                                {unit}
+                                            </span>
+                                            {idx < 2 && <span className="text-accent-400 font-bold">:</span>}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                         
+                        {/* Grid de produtos */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {produtosOfertas.map(produto => (
                                 <ProductCard key={produto.id} produto={produto} />
                             ))}
+                        </div>
+                        
+                        {/* CTA */}
+                        <div className="text-center mt-8">
+                            <button
+                                onClick={() => navigate('/produtos?ofertas=true')}
+                                className="btn-accent px-8 py-3 inline-flex items-center gap-2"
+                            >
+                                <span className="cta-gaming">Ver Todas as Ofertas</span>
+                                <Fire size={20} weight="fill" />
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Categorias */}
-            <div className="container mx-auto px-6 my-12">
-                <h2 className="heading-lg mb-8 text-center flex items-center justify-center gap-3 text-secondary-400">
-                    <Sparkle size={32} weight="fill" className="text-secondary-500" />
-                    <span className="text-glow-secondary">Explore por Categoria</span>
-                    <Sparkle size={32} weight="fill" className="text-secondary-500" />
-                </h2>
+            <div className="container mx-auto px-6 my-16">
+                {/* Header da seção */}
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center gap-4 mb-3">
+                        <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-secondary-500"></div>
+                        <Sparkle size={28} weight="fill" className="text-secondary-400" />
+                        <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-secondary-500"></div>
+                    </div>
+                    <h2 className="heading-gamer heading-lg text-secondary-400 text-glow-secondary mb-2">
+                        Explore por Categoria
+                    </h2>
+                    <p className="body-lg text-neutral-400 max-w-xl mx-auto">
+                        Encontre o jogo perfeito navegando por gêneros
+                    </p>
+                </div>
+                
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {[...Array(6)].map((_, i) => (
-                            <div key={i} className="aspect-square bg-neutral-800 rounded-lg animate-pulse"></div>
+                            <div key={i} className="aspect-square bg-neutral-800 rounded-gaming animate-pulse"></div>
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        {categorias.map(categoria => (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+                        {categorias.map((categoria, index) => (
                             <div
                                 key={categoria.id}
-                                className="group relative overflow-hidden rounded-lg cursor-pointer"
+                                className="group relative cursor-pointer"
                                 onClick={() => navigate(`/produtos?categoria=${categoria.id}`)}
                             >
-                                <div className="aspect-square bg-gradient-gaming p-6 flex flex-col items-center justify-center text-white transition-all group-hover:scale-105 group-hover:shadow-glow-md rounded-gaming">
-                                    <GameController size={48} className="mb-3 group-hover:text-accent-300 transition-colors" />
-                                    <h3 className="heading-sm text-center group-hover:text-glow-primary transition-all">{categoria.tipo}</h3>
-                                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity rounded-gaming"></div>
+                                {/* Card com efeito hover */}
+                                <div className="relative aspect-square overflow-hidden rounded-gaming border border-neutral-700 group-hover:border-secondary-500 transition-all duration-300">
+                                    {/* Background gradiente */}
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${
+                                        index % 3 === 0 ? 'from-primary-600/80 to-primary-900' :
+                                        index % 3 === 1 ? 'from-secondary-600/80 to-secondary-900' :
+                                        'from-accent-600/80 to-accent-900'
+                                    } group-hover:scale-110 transition-transform duration-500`}></div>
+                                    
+                                    {/* Padrão de fundo */}
+                                    <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.3\" fill-rule=\"evenodd\"%3E%3Cpath d=\"M0 40L40 0H20L0 20M40 40V20L20 40\"/%3E%3C/g%3E%3C/svg%3E')]"></div>
+                                    
+                                    {/* Conteúdo */}
+                                    <div className="relative h-full flex flex-col items-center justify-center p-4 text-white">
+                                        <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm mb-3 group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
+                                            <GameController size={32} className="group-hover:rotate-12 transition-transform duration-300" />
+                                        </div>
+                                        <h3 className="heading-sm text-center font-bold group-hover:text-glow-primary transition-all">
+                                            {categoria.tipo}
+                                        </h3>
+                                    </div>
+                                    
+                                    {/* Overlay hover */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                                    
+                                    {/* Borda brilhante no hover */}
+                                    <div className="absolute inset-0 rounded-gaming opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                         style={{boxShadow: 'inset 0 0 20px rgba(135, 0, 255, 0.3)'}}></div>
                                 </div>
+                                
+                                {/* Sombra glow no hover */}
+                                <div className="absolute -inset-1 bg-secondary-500/0 group-hover:bg-secondary-500/20 rounded-gaming blur-xl transition-all duration-300 -z-10"></div>
                             </div>
                         ))}
                     </div>
                 )}
+                
+                {/* Link para ver todas */}
+                <div className="text-center mt-8">
+                    <button
+                        onClick={() => navigate('/produtos')}
+                        className="btn-outline px-6 py-3 inline-flex items-center gap-2 border-secondary-500 text-secondary-400 hover:bg-secondary-500 hover:text-white"
+                    >
+                        <span className="cta-gaming">Ver Todas as Categorias</span>
+                        <Sparkle size={18} weight="fill" />
+                    </button>
+                </div>
             </div>
 
             {/* Tabs: Produtos em Destaque / Lançamentos */}
