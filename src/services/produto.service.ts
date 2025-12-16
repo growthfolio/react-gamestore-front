@@ -1,5 +1,6 @@
 import api from './api';
 import { Produto } from '../models/produtos/Produto';
+import { ProdutoDetalhe } from '../models/produtos/Media';
 
 export interface ProdutoRequest {
   nome: string;
@@ -16,6 +17,7 @@ export interface ProdutoRequest {
 }
 
 export type { Produto };
+export type { ProdutoDetalhe } from '../models/produtos/Media';
 
 export interface PaginatedResponse<T> {
   content: T[];
@@ -42,6 +44,24 @@ class ProdutoService {
 
   async buscarPorId(id: number): Promise<Produto> {
     const response = await api.get<Produto>(`/produtos/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Busca produto com mídia estruturada (imagens em múltiplos tamanhos)
+   * Ideal para página de detalhe do produto
+   */
+  async buscarDetalhe(id: number): Promise<ProdutoDetalhe> {
+    const response = await api.get<ProdutoDetalhe>(`/produtos/${id}/detalhe`);
+    return response.data;
+  }
+
+  /**
+   * Busca produto por slug com mídia estruturada
+   * Ideal para URLs amigáveis
+   */
+  async buscarPorSlug(slug: string): Promise<ProdutoDetalhe> {
+    const response = await api.get<ProdutoDetalhe>(`/produtos/slug/${slug}`);
     return response.data;
   }
 
