@@ -9,40 +9,27 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
 import produtoService, { Produto } from '../../services/produto.service';
 import categoriaService, { Categoria } from '../../services/categoria.service';
-import { ShoppingCart, GameController, Heart, Star, ArrowUp, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
+import { ShoppingCart, GameController, Heart, Star, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
-import { useAuth } from '../../contexts/AuthContext';
-import LoginSuggestionModal from '../../components/modals/LoginSuggestionModal';
+import RecentlyViewed from '../../components/produtos/RecentlyViewed';
 
 function Home() {
     const navigate = useNavigate();
     const { adicionarItem } = useCarrinho();
     const { toggleFavorito, isFavorito } = useFavoritos();
-    const { isAuthenticated } = useAuth();
     
     const [produtosDestaque, setProdutosDestaque] = useState<Produto[]>([]);
     const [produtosOfertas, setProdutosOfertas] = useState<Produto[]>([]);
     const [produtosLancamentos, setProdutosLancamentos] = useState<Produto[]>([]);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showScrollTop, setShowScrollTop] = useState(false);
     const [activeTab, setActiveTab] = useState<'destaque' | 'lancamentos'>('destaque');
     const [email, setEmail] = useState('');
-    const [timeLeft, setTimeLeft] = useState(86400); // 24 horas em segundos
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [loginAction, setLoginAction] = useState<'favorite' | 'cart' | 'checkout'>('cart');
-    const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null);
+    const [timeLeft, setTimeLeft] = useState(86400);
 
     useEffect(() => {
         carregarDados();
-        
-        const handleScroll = () => {
-            setShowScrollTop(window.scrollY > 400);
-        };
-        
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     useEffect(() => {
@@ -93,12 +80,6 @@ function Home() {
 
     const handleAddToCart = async (produto: Produto, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!isAuthenticated) {
-            setSelectedProduct(produto);
-            setLoginAction('cart');
-            setShowLoginModal(true);
-            return;
-        }
         try {
             await adicionarItem({ produtoId: produto.id, quantidade: 1 });
         } catch (error) {
@@ -108,14 +89,6 @@ function Home() {
 
     const handleToggleFavorito = async (produtoId: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!isAuthenticated) {
-            const produto = [...produtosDestaque, ...produtosOfertas, ...produtosLancamentos]
-                .find(p => p.id === produtoId);
-            setSelectedProduct(produto || null);
-            setLoginAction('favorite');
-            setShowLoginModal(true);
-            return;
-        }
         try {
             await toggleFavorito(produtoId);
         } catch (error) {
@@ -127,10 +100,6 @@ function Home() {
         e.preventDefault();
         console.log('Newsletter:', email);
         setEmail('');
-    };
-
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const formatTime = (seconds: number) => {
@@ -175,14 +144,14 @@ function Home() {
 
     const ProductCard = ({ produto }: { produto: Produto }) => (
         <div
-            className="group card-gaming overflow-hidden hover:shadow-glow-md hover:-translate-y-1 cursor-pointer relative"
+            className="group card-gaming overflow-hidden hover:shadow-glow-md cursor-pointer relative"
             onClick={() => navigate(`/produtos/${produto.id}`)}
         >
             <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">
                 <img
                     src={produto.imagens?.[0] || '/placeholder-game.png'}
                     alt={produto.nome}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover transition-transform duration-300"
                     loading="lazy"
                 />
                 {produto.desconto && produto.desconto > 0 && (
@@ -192,7 +161,7 @@ function Home() {
                 )}
                 <button
                     onClick={(e) => handleToggleFavorito(produto.id, e)}
-                    className={`absolute top-2 left-2 p-2 rounded-full transition-all ${
+                    className={`absolute top-2 left-2 p-2 rounded-full transition-all z-10 ${
                         isFavorito(produto.id) ? 'bg-accent-500 text-neutral-900 shadow-glow-neon' : 'bg-neutral-800/90 text-neutral-300 hover:bg-accent-500 hover:text-neutral-900'
                     }`}
                 >
@@ -202,7 +171,7 @@ function Home() {
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
                         onClick={(e) => handleAddToCart(produto, e)}
-                        className="btn-primary px-6 py-3 flex items-center gap-2 transform scale-90 group-hover:scale-100 transition-transform"
+                        className="btn-primary px-6 py-3 flex items-center gap-2"
                     >
                         <ShoppingCart size={20} weight="bold" />
                         <span className="cta-gaming">Adicionar</span>
@@ -629,6 +598,11 @@ function Home() {
                 </div>
             </div>
 
+            {/* Vistos Recentemente */}
+            <div className="container mx-auto px-6">
+                <RecentlyViewed />
+            </div>
+
             {/* Newsletter */}
             <div className="bg-neutral-950 border-t border-neutral-800 py-12">
                 <div className="container mx-auto px-6 text-center">
@@ -652,25 +626,6 @@ function Home() {
                     </form>
                 </div>
             </div>
-
-            {/* Botão Voltar ao Topo */}
-            {showScrollTop && (
-                <button
-                    onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 bg-primary-600 hover:bg-primary-500 text-white p-4 rounded-full shadow-glow-md transition-all transform hover:scale-110 z-50 animate-bounce hover:shadow-glow-lg"
-                    aria-label="Voltar ao topo"
-                >
-                    <ArrowUp size={24} weight="bold" />
-                </button>
-            )}
-
-            {/* Modal de Sugestão de Login */}
-            <LoginSuggestionModal
-                isOpen={showLoginModal}
-                onClose={() => setShowLoginModal(false)}
-                action={loginAction}
-                productName={selectedProduct?.nome}
-            />
         </>
     );
 }

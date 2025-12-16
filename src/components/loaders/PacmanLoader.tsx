@@ -1,41 +1,26 @@
 import { memo, useMemo } from 'react';
 
 interface PacmanLoaderProps {
-    /** Tamanho do loader em pixels */
     size?: 'sm' | 'md' | 'lg' | 'xl';
-    /** Cor principal do Pacman (padrão: amarelo) */
     color?: string;
-    /** Cor dos dots (padrão: ciano/accent) */
     dotColor?: string;
-    /** Velocidade da animação em ms (padrão: 500) */
     speed?: number;
-    /** Texto exibido abaixo do loader */
     text?: string;
-    /** Classe CSS adicional */
     className?: string;
-    /** Acessibilidade */
     ariaLabel?: string;
 }
 
 const sizeMap = {
     sm: { pacman: 24, dot: 6, gap: 12 },
-    md: { pacman: 32, dot: 8, gap: 16 },
-    lg: { pacman: 48, dot: 10, gap: 20 },
-    xl: { pacman: 64, dot: 12, gap: 24 },
+    md: { pacman: 36, dot: 8, gap: 14 },
+    lg: { pacman: 48, dot: 10, gap: 16 },
+    xl: { pacman: 64, dot: 12, gap: 20 },
 };
 
-/**
- * Loader animado estilo Pacman
- * 
- * @example
- * ```tsx
- * <PacmanLoader size="md" text="Carregando..." />
- * ```
- */
 function PacmanLoaderComponent({
     size = 'md',
-    color = '#FACC15', // yellow-400
-    dotColor = '#00FFFF', // accent/cyan
+    color = '#FACC15',
+    dotColor = '#00FFFF',
     speed = 400,
     text,
     className = '',
@@ -43,7 +28,6 @@ function PacmanLoaderComponent({
 }: PacmanLoaderProps) {
     const dimensions = sizeMap[size];
     
-    // Memoiza os estilos de animação para evitar recriação
     const animationStyles = useMemo(() => ({
         animationDuration: `${speed}ms`,
     }), [speed]);
@@ -54,50 +38,56 @@ function PacmanLoaderComponent({
             role="status"
             aria-label={ariaLabel}
         >
-            {/* Container do Pacman + Dots */}
             <div 
                 className="relative flex items-center"
-                style={{ height: dimensions.pacman, minWidth: dimensions.pacman * 4 }}
+                style={{ height: dimensions.pacman, minWidth: dimensions.pacman * 3.5 }}
             >
-                {/* Pacman */}
+                {/* Pacman - círculo completo com boca */}
                 <div 
-                    className="relative z-10"
+                    className="relative z-10 flex-shrink-0"
                     style={{ width: dimensions.pacman, height: dimensions.pacman }}
                 >
-                    {/* Parte superior (boca abrindo/fechando) */}
+                    {/* Parte superior */}
                     <div 
-                        className="absolute inset-0 animate-pacman-top"
+                        className="absolute animate-pacman-top"
                         style={{
                             ...animationStyles,
+                            width: dimensions.pacman,
+                            height: dimensions.pacman / 2,
                             background: color,
-                            borderRadius: '50%',
-                            clipPath: 'polygon(100% 50%, 50% 0%, 0% 0%, 0% 50%)',
+                            borderTopLeftRadius: dimensions.pacman,
+                            borderTopRightRadius: dimensions.pacman,
+                            transformOrigin: 'center bottom',
                         }}
                     />
-                    {/* Parte inferior (boca abrindo/fechando) */}
+                    {/* Parte inferior */}
                     <div 
-                        className="absolute inset-0 animate-pacman-bottom"
+                        className="absolute animate-pacman-bottom"
                         style={{
                             ...animationStyles,
+                            width: dimensions.pacman,
+                            height: dimensions.pacman / 2,
+                            top: dimensions.pacman / 2,
                             background: color,
-                            borderRadius: '50%',
-                            clipPath: 'polygon(100% 50%, 50% 100%, 0% 100%, 0% 50%)',
+                            borderBottomLeftRadius: dimensions.pacman,
+                            borderBottomRightRadius: dimensions.pacman,
+                            transformOrigin: 'center top',
                         }}
                     />
                     {/* Olho */}
                     <div 
-                        className="absolute rounded-full bg-neutral-900"
+                        className="absolute rounded-full bg-neutral-900 z-10"
                         style={{
-                            width: dimensions.dot * 0.6,
-                            height: dimensions.dot * 0.6,
-                            top: '20%',
-                            left: '45%',
+                            width: dimensions.dot * 0.5,
+                            height: dimensions.dot * 0.5,
+                            top: dimensions.pacman * 0.2,
+                            left: dimensions.pacman * 0.5,
                         }}
                     />
                 </div>
 
-                {/* Dots sendo comidos */}
-                <div className="flex items-center" style={{ marginLeft: dimensions.gap / 2 }}>
+                {/* Dots */}
+                <div className="flex items-center" style={{ marginLeft: dimensions.gap }}>
                     {[0, 1, 2, 3].map((index) => (
                         <div
                             key={index}
@@ -116,23 +106,19 @@ function PacmanLoaderComponent({
                 </div>
             </div>
 
-            {/* Texto opcional */}
             {text && (
                 <p className="text-neutral-400 font-gaming text-sm animate-pulse">
                     {text}
                 </p>
             )}
 
-            {/* Screen reader text */}
             <span className="sr-only">{ariaLabel}</span>
         </div>
     );
 }
 
-// Memo para evitar re-renders desnecessários
 export const PacmanLoader = memo(PacmanLoaderComponent);
 
-// Variante para uso em botões/inline
 interface PacmanSpinnerProps {
     size?: number;
     color?: string;
@@ -152,20 +138,27 @@ function PacmanSpinnerComponent({
             aria-label="Carregando"
         >
             <div 
-                className="absolute inset-0 animate-pacman-top"
+                className="absolute animate-pacman-top"
                 style={{
+                    width: size,
+                    height: size / 2,
                     background: color,
-                    borderRadius: '50%',
-                    clipPath: 'polygon(100% 50%, 50% 0%, 0% 0%, 0% 50%)',
+                    borderTopLeftRadius: size,
+                    borderTopRightRadius: size,
+                    transformOrigin: 'center bottom',
                     animationDuration: '300ms',
                 }}
             />
             <div 
-                className="absolute inset-0 animate-pacman-bottom"
+                className="absolute animate-pacman-bottom"
                 style={{
+                    width: size,
+                    height: size / 2,
+                    top: size / 2,
                     background: color,
-                    borderRadius: '50%',
-                    clipPath: 'polygon(100% 50%, 50% 100%, 0% 100%, 0% 50%)',
+                    borderBottomLeftRadius: size,
+                    borderBottomRightRadius: size,
+                    transformOrigin: 'center top',
                     animationDuration: '300ms',
                 }}
             />

@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Footer from './components/footer/Footer';
 import Navbar from './components/navbar/NavBar';
 import ProtectedRoute from './components/protectedRoute/ProtectedRoute';
+import BackToTop from './components/ui/BackToTop';
+import CookieConsent from './components/ui/CookieConsent';
 
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
@@ -22,10 +24,11 @@ import AdminProdutos from './pages/admin/produtos/AdminProdutos';
 import AdminPreCadastros from './pages/admin/preCadastros/AdminPreCadastros';
 import Checkout from './pages/checkout/Checkout';
 import Pedidos from './pages/pedidos/Pedidos';
-import BrandingDemo from './pages/BrandingDemo';
-import TypographyDemo from './pages/TypographyDemo';
-import FormDemo from './components/forms/FormDemo';
-import ToastDemo from './components/toast/ToastDemo';
+
+// Páginas Institucionais
+import Sobre from './pages/institucional/Sobre';
+import FAQ from './pages/institucional/FAQ';
+import Contato from './pages/institucional/Contato';
 
 // Categorias
 import ListaCategorias from './components/categorias/listaCategorias/ListaCategorias';
@@ -52,6 +55,17 @@ function App() {
                 <Route path="/produtos/:id" element={<DetalheProduto />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
+                
+                {/* Páginas Institucionais */}
+                <Route path="/sobre" element={<Sobre />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/contato" element={<Contato />} />
+                <Route path="/politica-privacidade" element={<Sobre />} />
+                <Route path="/termos-uso" element={<Sobre />} />
+                <Route path="/trocas-devolucoes" element={<FAQ />} />
+                <Route path="/como-comprar" element={<FAQ />} />
+                
+                {/* Rotas Protegidas - Usuário */}
                 <Route 
                   path="/checkout" 
                   element={
@@ -76,10 +90,6 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-                <Route path="/branding" element={<BrandingDemo />} />
-                <Route path="/typography" element={<TypographyDemo />} />
-                <Route path="/forms" element={<FormDemo />} />
-                <Route path="/toasts" element={<ToastDemo />} />
 
                 {/* Rotas Protegidas - Admin */}
                 <Route
@@ -117,6 +127,8 @@ function App() {
               </Routes>
               </div>
               <Footer />
+              <BackToTop />
+              <CookieConsent />
             </FavoritosProvider>
           </CarrinhoProvider>
         </AuthProvider>

@@ -15,6 +15,8 @@ interface LoadingOverlayProps {
     opacity?: number;
     /** Z-index do overlay */
     zIndex?: number;
+    /** Tempo mínimo de exibição em ms (padrão: 800) */
+    minDisplayTime?: number;
     /** Callback quando a animação de entrada termina */
     onEntered?: () => void;
     /** Callback quando a animação de saída termina */
@@ -47,30 +49,52 @@ function LoadingOverlayComponent({
     blur = 'sm',
     opacity = 80,
     zIndex = 50,
+    minDisplayTime = 800,
     onEntered,
     onExited,
 }: LoadingOverlayProps) {
     const [shouldRender, setShouldRender] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [canHide, setCanHide] = useState(true);
+    const showTimeRef = useState<number>(0);
 
     useEffect(() => {
         if (isVisible) {
+            showTimeRef[1](Date.now());
+            setCanHide(false);
             setShouldRender(true);
-            // Pequeno delay para garantir que o elemento está no DOM antes de animar
             requestAnimationFrame(() => {
                 setIsAnimating(true);
                 onEntered?.();
             });
-        } else {
+            
+            // Garante tempo mínimo de exibição
+            const timer = setTimeout(() => {
+                setCanHide(true);
+            }, minDisplayTime);
+            
+            return () => clearTimeout(timer);
+        } else if (canHide) {
             setIsAnimating(false);
-            // Aguarda a animação de saída antes de remover do DOM
             const timer = setTimeout(() => {
                 setShouldRender(false);
                 onExited?.();
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [isVisible, onEntered, onExited]);
+    }, [isVisible, canHide, minDisplayTime, onEntered, onExited]);
+    
+    // Efeito separado para esconder quando canHide muda
+    useEffect(() => {
+        if (!isVisible && canHide && shouldRender) {
+            setIsAnimating(false);
+            const timer = setTimeout(() => {
+                setShouldRender(false);
+                onExited?.();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [canHide, isVisible, shouldRender, onExited]);
 
     // Previne scroll do body quando overlay está visível
     useEffect(() => {

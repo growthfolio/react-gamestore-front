@@ -1,523 +1,425 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import produtoService from "../../../services/produto.service";
-import categoriaService from "../../../services/categoria.service";
-import { PencilSimple, Trash, MagnifyingGlass, GameController, Funnel, X, Plus } from "@phosphor-icons/react";
+import { MagnifyingGlass, GameController, Funnel, X, Plus, Heart, ShoppingCart, Star, SquaresFour, List } from "@phosphor-icons/react";
 import { Produto } from "../../../models/produtos/Produto";
-import Categoria from "../../../models/categorias/Categoria";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useCarrinho } from "../../../contexts/CarrinhoContext";
+import { useFavoritos } from "../../../contexts/FavoritosContext";
 import FormularioProduto from "../formularioProduto/FormularioProduto";
 import DeletarProduto from "../deletarProdutos/DeletarProduto";
+import FilterSidebar, { FilterState } from "../FilterSidebar";
+import LoginSuggestionModal from "../../modals/LoginSuggestionModal";
 
 function ListaProdutos() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
+  const { adicionarItem } = useCarrinho();
+  const { toggleFavorito, isFavorito } = useFavoritos();
   const [searchParams, setSearchParams] = useSearchParams();
+  
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalElementos, setTotalElementos] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [busca, setBusca] = useState("");
-  const [categoriaId, setCategoriaId] = useState("");
+  const [busca, setBusca] = useState(searchParams.get('busca') || "");
   const [ordenacao, setOrdenacao] = useState("nome,asc");
-  const [precoMin, setPrecoMin] = useState("");
-  const [precoMax, setPrecoMax] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [produtoParaEditar, setProdutoParaEditar] = useState<number | undefined>(undefined);
   const [produtoParaDeletar, setProdutoParaDeletar] = useState<Produto | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginAction, setLoginAction] = useState<'favorite' | 'cart'>('cart');
+  
+  const [filters, setFilters] = useState<FilterState>({
+    categoriaId: searchParams.get('categoria') || '',
+    plataforma: searchParams.get('plataforma') || '',
+    precoMin: searchParams.get('precoMin') || '',
+    precoMax: searchParams.get('precoMax') || '',
+    apenasPromocao: searchParams.get('ofertas') === 'true',
+    avaliacaoMinima: 0,
+  });
+
   const itensPorPagina = 12;
 
-  async function buscarProdutos(pagina: number = 0, termoBusca: string = "", catId: string = "", sort: string = "nome,asc") {
+  async function buscarProdutos(pagina: number = 0) {
     try {
       setIsLoading(true);
+      const params: any = { page: pagina, size: itensPorPagina, sort: ordenacao };
       
-      let response;
-      if (termoBusca.trim()) {
-        response = await produtoService.listar({
-          nome: termoBusca,
-          page: pagina,
-          size: itensPorPagina,
-          sort,
-        });
-      } else if (catId) {
-        response = await produtoService.listar({
-          categoriaId: Number(catId),
-          page: pagina,
-          size: itensPorPagina,
-          sort,
-        });
-      } else {
-        response = await produtoService.listar({
-          page: pagina,
-          size: itensPorPagina,
-          sort,
-        });
+      if (busca.trim()) params.nome = busca;
+      if (filters.categoriaId) params.categoriaId = Number(filters.categoriaId);
+      
+      const response = await produtoService.listar(params);
+      let produtosFiltrados = response.content || [];
+      
+      // Filtros client-side
+      if (filters.plataforma) {
+        produtosFiltrados = produtosFiltrados.filter(p => p.plataforma === filters.plataforma);
       }
-
-      setProdutos(response.content);
+      if (filters.precoMin) {
+        produtosFiltrados = produtosFiltrados.filter(p => p.preco >= parseFloat(filters.precoMin));
+      }
+      if (filters.precoMax) {
+        produtosFiltrados = produtosFiltrados.filter(p => p.preco <= parseFloat(filters.precoMax));
+      }
+      if (filters.apenasPromocao) {
+        produtosFiltrados = produtosFiltrados.filter(p => p.desconto && p.desconto > 0);
+      }
+      
+      setProdutos(produtosFiltrados);
       setTotalPaginas(response.totalPages);
       setTotalElementos(response.totalElements);
       setPaginaAtual(response.number);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Erro ao listar produtos:", error);
-      alert("Erro ao carregar produtos");
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function carregarCategorias() {
-    try {
-      const response = await categoriaService.listar();
-      setCategorias(response.content);
-    } catch (error) {
-      console.error("Erro ao carregar categorias:", error);
-    }
-  }
+  useEffect(() => {
+    buscarProdutos(0);
+  }, [filters, ordenacao]);
 
   useEffect(() => {
-    carregarCategorias();
-    const catParam = searchParams.get('categoria');
-    if (catParam) {
-      setCategoriaId(catParam);
+    const buscaParam = searchParams.get('busca');
+    if (buscaParam) {
+      setBusca(buscaParam);
+      buscarProdutos(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    buscarProdutos(0, busca, categoriaId, ordenacao);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoriaId]);
+  }, [searchParams]);
 
   const handleBusca = (e: React.FormEvent) => {
     e.preventDefault();
-    buscarProdutos(0, busca, categoriaId, ordenacao);
+    setSearchParams(prev => {
+      if (busca) prev.set('busca', busca);
+      else prev.delete('busca');
+      return prev;
+    });
+    buscarProdutos(0);
   };
 
-  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCatId = e.target.value;
-    setCategoriaId(newCatId);
-    if (newCatId) {
-      setSearchParams({ categoria: newCatId });
-    } else {
-      setSearchParams({});
-    }
-  };
-
-  const handleOrdenacao = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const novaOrdenacao = e.target.value;
-    setOrdenacao(novaOrdenacao);
-    buscarProdutos(paginaAtual, busca, categoriaId, novaOrdenacao);
-  };
-
-  const irParaPaginaAnterior = () => {
-    if (paginaAtual > 0) {
-      buscarProdutos(paginaAtual - 1, busca, categoriaId, ordenacao);
-    }
-  };
-
-  const irParaProximaPagina = () => {
-    if (paginaAtual < totalPaginas - 1) {
-      buscarProdutos(paginaAtual + 1, busca, categoriaId, ordenacao);
-    }
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    const params = new URLSearchParams();
+    if (newFilters.categoriaId) params.set('categoria', newFilters.categoriaId);
+    if (newFilters.plataforma) params.set('plataforma', newFilters.plataforma);
+    if (newFilters.apenasPromocao) params.set('ofertas', 'true');
+    if (busca) params.set('busca', busca);
+    setSearchParams(params);
   };
 
   const limparFiltros = () => {
     setBusca("");
-    setCategoriaId("");
-    setPrecoMin("");
-    setPrecoMax("");
+    setFilters({ categoriaId: '', plataforma: '', precoMin: '', precoMax: '', apenasPromocao: false, avaliacaoMinima: 0 });
     setOrdenacao("nome,asc");
     setSearchParams({});
-    buscarProdutos(0, "", "", "nome,asc");
   };
 
-  const hasActiveFilters = busca || categoriaId || precoMin || precoMax;
+  const handleAddToCart = async (produto: Produto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!isAuthenticated) {
+      setLoginAction('cart');
+      setShowLoginModal(true);
+      return;
+    }
+    try {
+      await adicionarItem({ produtoId: produto.id, quantidade: 1 });
+    } catch (error) {
+      console.error('Erro ao adicionar ao carrinho:', error);
+    }
+  };
 
-  // Filtrar produtos por preço (client-side já que a API pode não suportar)
-  const produtosFiltrados = produtos.filter(produto => {
-    const minOk = !precoMin || produto.preco >= parseFloat(precoMin);
-    const maxOk = !precoMax || produto.preco <= parseFloat(precoMax);
-    return minOk && maxOk;
-  });
+  const handleToggleFavorito = async (produtoId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      await toggleFavorito(produtoId);
+    } catch (error) {
+      console.error('Erro ao favoritar:', error);
+    }
+  };
+
+  const hasActiveFilters = busca || filters.categoriaId || filters.plataforma || 
+    filters.precoMin || filters.precoMax || filters.apenasPromocao;
+
+  const ProductCard = ({ produto }: { produto: Produto }) => (
+    <Link
+      to={`/produtos/${produto.id}`}
+      className={`card-gaming overflow-hidden group hover:shadow-glow-md transition-all ${
+        viewMode === 'list' ? 'flex' : ''
+      }`}
+    >
+      {/* Imagem */}
+      <div className={`relative bg-neutral-800 overflow-hidden ${
+        viewMode === 'list' ? 'w-32 h-32 flex-shrink-0' : 'aspect-[3/4]'
+      }`}>
+        {produto.imagens?.[0] ? (
+          <img src={produto.imagens[0]} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <GameController size={48} className="text-neutral-600" />
+          </div>
+        )}
+        
+        {produto.desconto && produto.desconto > 0 && (
+          <span className="absolute top-2 right-2 px-2 py-1 bg-accent-500 text-neutral-900 text-xs font-bold rounded-full">
+            -{produto.desconto}%
+          </span>
+        )}
+        
+        {/* Quick Actions */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <button
+            onClick={(e) => handleToggleFavorito(produto.id, e)}
+            className={`p-2 rounded-full transition-all ${
+              isFavorito(produto.id) ? 'bg-accent-500 text-neutral-900' : 'bg-neutral-800 text-neutral-300 hover:bg-accent-500 hover:text-neutral-900'
+            }`}
+          >
+            <Heart size={20} weight={isFavorito(produto.id) ? 'fill' : 'regular'} />
+          </button>
+          <button
+            onClick={(e) => handleAddToCart(produto, e)}
+            className="p-2 rounded-full bg-primary-500 text-white hover:bg-primary-400 transition-all"
+          >
+            <ShoppingCart size={20} weight="bold" />
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+        <h3 className="font-bold text-white mb-1 line-clamp-1 group-hover:text-primary-400 transition-colors">
+          {produto.nome}
+        </h3>
+        
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} size={12} weight="fill" className="text-yellow-400" />
+          ))}
+          <span className="text-xs text-neutral-500 ml-1">(4.5)</span>
+        </div>
+        
+        <p className="text-xs text-neutral-400 mb-2">
+          {produto.plataforma} {produto.desenvolvedor && `• ${produto.desenvolvedor}`}
+        </p>
+
+        <div className="flex items-end gap-2">
+          {produto.desconto && produto.desconto > 0 ? (
+            <>
+              <span className="text-xs text-neutral-500 line-through">R$ {produto.preco.toFixed(2)}</span>
+              <span className="text-lg font-bold text-accent-400">
+                R$ {(produto.preco * (1 - produto.desconto / 100)).toFixed(2)}
+              </span>
+            </>
+          ) : (
+            <span className="text-lg font-bold text-accent-400">R$ {produto.preco.toFixed(2)}</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+
+  const SkeletonCard = () => (
+    <div className="card-gaming overflow-hidden animate-pulse">
+      <div className="aspect-[3/4] bg-neutral-800" />
+      <div className="p-4 space-y-2">
+        <div className="h-4 bg-neutral-700 rounded w-3/4" />
+        <div className="h-3 bg-neutral-700 rounded w-1/2" />
+        <div className="h-5 bg-neutral-700 rounded w-1/3" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-neutral-950 py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="heading-gamer text-2xl md:text-3xl flex items-center gap-3">
-            <GameController className="text-primary-500" size={32} />
-            Catálogo de Jogos
-          </h1>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="heading-gamer text-2xl md:text-3xl flex items-center gap-3">
+              <GameController className="text-primary-500" size={32} />
+              Catálogo de Jogos
+            </h1>
+            <p className="text-neutral-400 text-sm mt-1">
+              {totalElementos} jogos disponíveis
+            </p>
+          </div>
+          
           <div className="flex items-center gap-3">
             {isAdmin && (
-              <button
-                onClick={() => {
-                  setProdutoParaEditar(undefined);
-                  setShowFormModal(true);
-                }}
-                className="btn-primary flex items-center gap-2"
-              >
+              <button onClick={() => { setProdutoParaEditar(undefined); setShowFormModal(true); }} className="btn-primary flex items-center gap-2">
                 <Plus size={20} />
-                Novo Produto
+                <span className="hidden sm:inline">Novo Produto</span>
               </button>
             )}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`btn-ghost flex items-center gap-2 ${showFilters ? 'text-primary-400' : ''}`}
-            >
-              <Funnel size={20} />
-              Filtros
-              {hasActiveFilters && (
-                <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  !
+          </div>
+        </div>
+
+        {/* Search & Controls Bar */}
+        <div className="card-gaming p-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <form onSubmit={handleBusca} className="flex-1 flex gap-2">
+              <div className="relative flex-1">
+                <MagnifyingGlass size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar jogos..."
+                  className="w-full pl-12 pr-4 py-2.5 input-gaming"
+                />
+              </div>
+              <button type="submit" className="btn-primary px-6">Buscar</button>
+            </form>
+
+            {/* Controls */}
+            <div className="flex items-center gap-3">
+              {/* Ordenação */}
+              <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value)} className="select-gaming text-sm py-2.5">
+                <option value="nome,asc">Nome (A-Z)</option>
+                <option value="nome,desc">Nome (Z-A)</option>
+                <option value="preco,asc">Menor Preço</option>
+                <option value="preco,desc">Maior Preço</option>
+              </select>
+
+              {/* View Mode */}
+              <div className="hidden md:flex border border-neutral-700 rounded-gaming overflow-hidden">
+                <button onClick={() => setViewMode('grid')} className={`p-2.5 ${viewMode === 'grid' ? 'bg-primary-500 text-white' : 'bg-neutral-800 text-neutral-400 hover:text-white'}`}>
+                  <SquaresFour size={20} />
+                </button>
+                <button onClick={() => setViewMode('list')} className={`p-2.5 ${viewMode === 'list' ? 'bg-primary-500 text-white' : 'bg-neutral-800 text-neutral-400 hover:text-white'}`}>
+                  <List size={20} />
+                </button>
+              </div>
+
+              {/* Filter Toggle Mobile */}
+              <button onClick={() => setShowFilters(true)} className="lg:hidden btn-ghost flex items-center gap-2">
+                <Funnel size={20} />
+                {hasActiveFilters && <span className="w-2 h-2 bg-primary-500 rounded-full" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Active Filters Chips */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-neutral-800 flex-wrap">
+              <span className="text-xs text-neutral-500">Filtros ativos:</span>
+              {busca && (
+                <span className="px-3 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300 flex items-center gap-2">
+                  "{busca}"
+                  <button onClick={() => { setBusca(""); buscarProdutos(0); }}><X size={12} /></button>
                 </span>
               )}
-            </button>
-          </div>
-        </div>
-
-        {/* Barra de Busca e Filtros */}
-        <div className="card-gaming p-6 mb-6 space-y-4">
-          {/* Busca Principal */}
-          <form onSubmit={handleBusca} className="flex gap-2">
-            <div className="relative flex-1">
-              <MagnifyingGlass 
-                size={20} 
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" 
-              />
-              <input
-                type="text"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar jogos por nome..."
-                className="w-full pl-12 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn-primary px-6"
-            >
-              Buscar
-            </button>
-          </form>
-
-          {/* Filtros Avançados */}
-          {showFilters && (
-            <div className="pt-4 border-t border-neutral-800 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Categoria */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+              {filters.categoriaId && (
+                <span className="px-3 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300 flex items-center gap-2">
                   Categoria
-                </label>
-                <select
-                  value={categoriaId}
-                  onChange={handleCategoriaChange}
-                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
-                >
-                  <option value="">Todas as categorias</option>
-                  {categorias.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.tipo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Preço Mínimo */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Preço Mínimo
-                </label>
-                <input
-                  type="number"
-                  value={precoMin}
-                  onChange={(e) => setPrecoMin(e.target.value)}
-                  placeholder="R$ 0"
-                  min="0"
-                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Preço Máximo */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Preço Máximo
-                </label>
-                <input
-                  type="number"
-                  value={precoMax}
-                  onChange={(e) => setPrecoMax(e.target.value)}
-                  placeholder="R$ 999"
-                  min="0"
-                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white placeholder-neutral-400 focus:border-primary-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Ordenação */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
-                  Ordenar por
-                </label>
-                <select
-                  value={ordenacao}
-                  onChange={handleOrdenacao}
-                  className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-gaming text-white focus:border-primary-500 focus:outline-none"
-                >
-                  <option value="nome,asc">Nome (A-Z)</option>
-                  <option value="nome,desc">Nome (Z-A)</option>
-                  <option value="preco,asc">Menor Preço</option>
-                  <option value="preco,desc">Maior Preço</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* Limpar Filtros */}
-          {hasActiveFilters && (
-            <div className="flex items-center gap-4 pt-4 border-t border-neutral-800">
-              <button
-                onClick={limparFiltros}
-                className="btn-ghost text-sm flex items-center gap-2 text-red-400 hover:text-red-300"
-              >
-                <X size={16} />
-                Limpar todos os filtros
+                  <button onClick={() => handleFilterChange({ ...filters, categoriaId: '' })}><X size={12} /></button>
+                </span>
+              )}
+              {filters.plataforma && (
+                <span className="px-3 py-1 bg-neutral-800 rounded-full text-xs text-neutral-300 flex items-center gap-2">
+                  {filters.plataforma}
+                  <button onClick={() => handleFilterChange({ ...filters, plataforma: '' })}><X size={12} /></button>
+                </span>
+              )}
+              {filters.apenasPromocao && (
+                <span className="px-3 py-1 bg-accent-500/20 text-accent-400 rounded-full text-xs flex items-center gap-2">
+                  Promoções
+                  <button onClick={() => handleFilterChange({ ...filters, apenasPromocao: false })}><X size={12} /></button>
+                </span>
+              )}
+              <button onClick={limparFiltros} className="text-xs text-error-400 hover:text-error-300 ml-2">
+                Limpar tudo
               </button>
-              <div className="flex gap-2 flex-wrap">
-                {busca && (
-                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
-                    Busca: "{busca}"
-                    <button onClick={() => { setBusca(""); buscarProdutos(0, "", categoriaId, ordenacao); }}>
-                      <X size={14} />
-                    </button>
-                  </span>
-                )}
-                {categoriaId && (
-                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
-                    Categoria: {categorias.find(c => c.id.toString() === categoriaId)?.tipo}
-                    <button onClick={() => { setCategoriaId(""); setSearchParams({}); }}>
-                      <X size={14} />
-                    </button>
-                  </span>
-                )}
-                {precoMin && (
-                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
-                    Min: R$ {precoMin}
-                    <button onClick={() => setPrecoMin("")}>
-                      <X size={14} />
-                    </button>
-                  </span>
-                )}
-                {precoMax && (
-                  <span className="px-3 py-1 bg-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-2">
-                    Max: R$ {precoMax}
-                    <button onClick={() => setPrecoMax("")}>
-                      <X size={14} />
-                    </button>
-                  </span>
-                )}
-              </div>
             </div>
           )}
         </div>
 
-        {/* Info de Resultados */}
-        <div className="mb-4 text-neutral-400 text-sm">
-          Mostrando {produtosFiltrados.length} de {totalElementos} jogos
-        </div>
+        {/* Main Content */}
+        <div className="flex gap-6">
+          {/* Sidebar */}
+          <FilterSidebar
+            filters={filters}
+            onChange={handleFilterChange}
+            onClear={limparFiltros}
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+          />
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mb-4"></div>
-            <p className="text-neutral-400">Carregando jogos...</p>
-          </div>
-        )}
-
-        {/* Grid de Produtos */}
-        {!isLoading && produtosFiltrados.length > 0 && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {produtosFiltrados.map((produto: Produto) => (
-                <div
-                  key={produto.id}
-                  className="card-gaming overflow-hidden group hover:scale-[1.02] transition-transform"
-                >
-                  {/* Imagem */}
-                  <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">
-                    {produto.imagens && produto.imagens.length > 0 ? (
-                      <img
-                        src={produto.imagens[0]}
-                        alt={produto.nome}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <GameController size={64} className="text-neutral-600" />
-                      </div>
-                    )}
-                    
-                    {/* Badge de Status */}
-                    {!produto.ativo && (
-                      <span className="absolute top-3 left-3 px-2 py-1 bg-red-500/90 text-white text-xs rounded-full">
-                        Indisponível
-                      </span>
-                    )}
-                    
-                    {/* Desconto */}
-                    {produto.desconto > 0 && (
-                      <span className="absolute top-3 right-3 px-2 py-1 bg-accent-500 text-neutral-900 text-xs font-bold rounded-full">
-                        -{produto.desconto}%
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-4">
-                    <h3 className="font-bold text-white mb-1 line-clamp-1 group-hover:text-primary-400 transition-colors">
-                      {produto.nome}
-                    </h3>
-                    <p className="text-xs text-neutral-400 mb-3">
-                      {produto.plataforma} • {produto.desenvolvedor}
-                    </p>
-
-                    {/* Preço */}
-                    <div className="flex items-end gap-2 mb-4">
-                      {produto.desconto > 0 ? (
-                        <>
-                          <span className="text-xs text-neutral-500 line-through">
-                            R$ {produto.preco.toFixed(2)}
-                          </span>
-                          <span className="text-lg font-bold text-accent-400">
-                            R$ {(produto.preco * (1 - produto.desconto / 100)).toFixed(2)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-lg font-bold text-accent-400">
-                          R$ {produto.preco.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Ações */}
-                    <div className="flex gap-2">
-                      <Link
-                        to={`/produtos/${produto.id}`}
-                        className="btn-primary flex-1 justify-center text-sm py-2"
-                      >
-                        Ver Detalhes
-                      </Link>
-                      
-                      {isAdmin && (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => {
-                              setProdutoParaEditar(produto.id);
-                              setShowFormModal(true);
-                            }}
-                            className="btn-ghost p-2"
-                            title="Editar"
-                          >
-                            <PencilSimple size={18} />
-                          </button>
-                          <button
-                            onClick={() => setProdutoParaDeletar(produto)}
-                            className="btn-ghost p-2 text-red-400 hover:text-red-300"
-                            title="Excluir"
-                          >
-                            <Trash size={18} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          {/* Products Grid */}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+                {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : produtos.length > 0 ? (
+              <>
+                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+                  {produtos.map(produto => <ProductCard key={produto.id} produto={produto} />)}
                 </div>
-              ))}
-            </div>
 
-            {/* Paginação */}
-            <div className="flex flex-col md:flex-row justify-between items-center mt-8 gap-4">
-              <button
-                onClick={irParaPaginaAnterior}
-                disabled={paginaAtual === 0}
-                className={`px-6 py-2 rounded-gaming font-semibold transition-colors ${
-                  paginaAtual === 0
-                    ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                    : "btn-secondary"
-                }`}
-              >
-                ← Anterior
-              </button>
-              <span className="text-neutral-400">
-                Página {paginaAtual + 1} de {totalPaginas || 1}
-              </span>
-              <button
-                onClick={irParaProximaPagina}
-                disabled={paginaAtual === totalPaginas - 1 || totalPaginas === 0}
-                className={`px-6 py-2 rounded-gaming font-semibold transition-colors ${
-                  paginaAtual === totalPaginas - 1 || totalPaginas === 0
-                    ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                    : "btn-secondary"
-                }`}
-              >
-                Próxima →
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && produtosFiltrados.length === 0 && (
-          <div className="card-gaming p-12 text-center">
-            <GameController size={64} className="mx-auto text-neutral-600 mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">
-              Nenhum jogo encontrado
-            </h2>
-            <p className="text-neutral-400 mb-6">
-              Tente ajustar os filtros ou buscar por outro termo
-            </p>
-            {hasActiveFilters && (
-              <button
-                onClick={limparFiltros}
-                className="btn-primary"
-              >
-                Limpar Filtros
-              </button>
+                {/* Pagination */}
+                {totalPaginas > 1 && (
+                  <div className="flex justify-center items-center gap-4 mt-8">
+                    <button
+                      onClick={() => buscarProdutos(paginaAtual - 1)}
+                      disabled={paginaAtual === 0}
+                      className="btn-outline px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <span className="text-neutral-400">
+                      Página {paginaAtual + 1} de {totalPaginas}
+                    </span>
+                    <button
+                      onClick={() => buscarProdutos(paginaAtual + 1)}
+                      disabled={paginaAtual >= totalPaginas - 1}
+                      className="btn-outline px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-16">
+                <GameController size={64} className="mx-auto text-neutral-700 mb-4" />
+                <h3 className="text-xl font-semibold text-neutral-300 mb-2">Nenhum jogo encontrado</h3>
+                <p className="text-neutral-500 mb-4">Tente ajustar os filtros ou buscar por outro termo</p>
+                <button onClick={limparFiltros} className="btn-primary">Limpar Filtros</button>
+              </div>
             )}
           </div>
-        )}
-
-        {/* Modal de Formulário (Criar/Editar) */}
-        {showFormModal && (
-          <FormularioProduto
-            produtoId={produtoParaEditar}
-            onClose={() => {
-              setShowFormModal(false);
-              setProdutoParaEditar(undefined);
-            }}
-            onSaved={() => {
-              setShowFormModal(false);
-              setProdutoParaEditar(undefined);
-              buscarProdutos(paginaAtual, busca, categoriaId, ordenacao);
-            }}
-          />
-        )}
-
-        {/* Modal de Exclusão */}
-        {produtoParaDeletar && (
-          <DeletarProduto
-            produto={produtoParaDeletar}
-            onClose={() => setProdutoParaDeletar(null)}
-            onDeleted={() => {
-              setProdutoParaDeletar(null);
-              buscarProdutos(paginaAtual, busca, categoriaId, ordenacao);
-            }}
-          />
-        )}
+        </div>
       </div>
+
+      {/* Modals */}
+      {showFormModal && (
+        <FormularioProduto
+          produtoId={produtoParaEditar}
+          onClose={() => setShowFormModal(false)}
+          onSaved={() => { setShowFormModal(false); buscarProdutos(paginaAtual); }}
+        />
+      )}
+
+      {produtoParaDeletar && (
+        <DeletarProduto
+          produto={produtoParaDeletar}
+          onClose={() => setProdutoParaDeletar(null)}
+          onDeleted={() => { setProdutoParaDeletar(null); buscarProdutos(paginaAtual); }}
+        />
+      )}
+
+      <LoginSuggestionModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        action={loginAction}
+      />
     </div>
   );
 }
