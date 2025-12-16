@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { useFavoritos } from '../../contexts/FavoritosContext';
-import { useCarrinho } from '../../contexts/CarrinhoContext';
+import perfilService, { PerfilStats, ConquistaDTO } from '../../services/perfil.service';
 import { 
   UserCircle, PencilSimple, FloppyDisk, X, Package, ArrowRight, Eye, EyeSlash,
-  Heart, ShoppingCart, GameController, Trophy, Star, Calendar, Shield, Gear
+  Heart, ShoppingCart, GameController, Trophy, Star, Calendar, Shield, Gear,
+  Medal, TrendingUp, Fire, Crown
 } from '@phosphor-icons/react';
 
-const Perfil: React.FC = () => {
+const nivelCores: Record<string, { bg: string; text: string; glow: string }> = {
+  BRONZE: { bg: 'from-amber-700 to-amber-900', text: 'text-amber-400', glow: 'shadow-amber-500/30' },
+  PRATA: { bg: 'from-gray-400 to-gray-600', text: 'text-gray-300', glow: 'shadow-gray-400/30' },
+  OURO: { bg: 'from-yellow-500 to-yellow-700', text: 'text-yellow-400', glow: 'shadow-yellow-500/30' },
+  PLATINA: { bg: 'from-cyan-400 to-cyan-600', text: 'text-cyan-400', glow: 'shadow-cyan-500/30' },
+  DIAMANTE: { bg: 'from-purple-500 to-pink-500', text: 'text-purple-400', glow: 'shadow-purple-500/30' },
+};
+
+const Perfil = () => {
   const { usuario, isAdmin, atualizarUsuario } = useAuth();
   const { success, error } = useToast();
-  const { totalFavoritos } = useFavoritos();
-  const { totalItens } = useCarrinho();
+  const [stats, setStats] = useState<PerfilStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nickname: usuario?.nickname || '',
@@ -23,51 +31,38 @@ const Perfil: React.FC = () => {
     senha: ''
   });
 
-  const handleSave = async () => {
-    if (!formData.nickname.trim()) {
-      error('Erro', 'Nickname é obrigatório');
-      return;
-    }
-    if (!formData.email.trim()) {
-      error('Erro', 'Email é obrigatório');
-      return;
-    }
-    if (!formData.senha.trim()) {
-      error('Erro', 'Senha é obrigatória para confirmar as alterações');
-      return;
-    }
-    if (formData.senha.length < 8) {
-      error('Erro', 'Senha deve ter pelo menos 8 caracteres');
-      return;
-    }
+  useEffect(() => {
+    loadStats();
+  }, []);
 
+  const loadStats = async () => {
     try {
       setLoading(true);
-      await atualizarUsuario(usuario!.id, {
-        nickname: formData.nickname,
-        email: formData.email,
-        senha: formData.senha
-      });
-      
-      success('Perfil atualizado!', 'Suas informações foram salvas com sucesso.');
-      setFormData(prev => ({ ...prev, senha: '' }));
-      setEditMode(false);
-    } catch (err: unknown) {
-      console.error('Erro ao atualizar perfil:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Não foi possível atualizar o perfil.';
-      error('Erro ao salvar', errorMessage);
+      const data = await perfilService.getStats();
+      setStats(data);
+    } catch (err) {
+      console.error('Erro ao carregar stats:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setFormData({
-      nickname: usuario?.nickname || '',
-      email: usuario?.email || '',
-      senha: ''
-    });
-    setEditMode(false);
+  const handleSave = async () => {
+    if (!formData.nickname.trim() || !formData.email.trim() || !formData.senha.trim()) {
+      error('Erro', 'Preencha todos os campos');
+      return;
+    }
+    try {
+      setSaving(true);
+      await atualizarUsuario(usuario!.id, formData);
+      success('Perfil atualizado!', 'Suas informações foram salvas.');
+      setFormData(prev => ({ ...prev, senha: '' }));
+      setEditMode(false);
+    } catch (err) {
+      error('Erro ao salvar', 'Não foi possível atualizar o perfil.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!usuario) {
@@ -75,81 +70,92 @@ const Perfil: React.FC = () => {
       <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
         <div className="text-center">
           <UserCircle size={64} className="mx-auto text-neutral-600 mb-4" />
-          <p className="text-neutral-400">Usuário não encontrado</p>
+          <p className="text-neutral-400">Faça login para ver seu perfil</p>
           <Link to="/login" className="btn-primary mt-4 inline-block">Fazer Login</Link>
         </div>
       </div>
     );
   }
 
-  const stats = [
-    { icon: Heart, label: 'Favoritos', value: totalFavoritos, color: 'text-red-400', bg: 'bg-red-500/10' },
-    { icon: ShoppingCart, label: 'No Carrinho', value: totalItens, color: 'text-primary-400', bg: 'bg-primary-500/10' },
-    { icon: Trophy, label: 'Nível', value: 'Gamer', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-    { icon: Star, label: 'Avaliações', value: 0, color: 'text-accent-400', bg: 'bg-accent-500/10' },
-  ];
+  const nivelNome = stats?.nivel?.nome?.toUpperCase() || 'BRONZE';
+  const cores = nivelCores[nivelNome] || nivelCores.BRONZE;
 
   return (
     <div className="min-h-screen bg-neutral-950 py-8 px-4">
-      <div className="container mx-auto max-w-5xl">
-        {/* Header com Avatar e Info Principal */}
-        <div className="card-gaming p-6 mb-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+      <div className="container mx-auto max-w-6xl">
+        {/* Header com Avatar e Nível */}
+        <div className="card-gaming p-6 mb-6 relative overflow-hidden">
+          <div className={`absolute inset-0 bg-gradient-to-r ${cores.bg} opacity-10`} />
+          
+          <div className="relative flex flex-col lg:flex-row items-center lg:items-start gap-6">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-28 h-28 bg-gradient-to-br from-primary-500 via-secondary-500 to-accent-500 rounded-full p-1">
+              <div className={`w-32 h-32 bg-gradient-to-br ${cores.bg} rounded-full p-1 shadow-lg ${cores.glow}`}>
                 <div className="w-full h-full bg-neutral-900 rounded-full flex items-center justify-center">
-                  <span className="text-4xl font-bold text-primary-400">
-                    {usuario.nickname?.charAt(0).toUpperCase() || 'U'}
-                  </span>
+                  {usuario.foto ? (
+                    <img src={usuario.foto} alt={usuario.nickname} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <span className={`text-5xl font-bold ${cores.text}`}>
+                      {usuario.nickname?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
               </div>
               {isAdmin && (
-                <div className="absolute -bottom-1 -right-1 bg-secondary-500 rounded-full p-1.5">
-                  <Shield size={16} className="text-white" weight="fill" />
+                <div className="absolute -bottom-1 -right-1 bg-secondary-500 rounded-full p-2">
+                  <Shield size={18} className="text-white" weight="fill" />
                 </div>
               )}
             </div>
 
-            {/* Info */}
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                <h1 className="heading-gamer text-2xl text-neutral-100">{usuario.nickname}</h1>
-                {isAdmin && (
-                  <span className="inline-block bg-secondary-500 text-white px-3 py-0.5 rounded-full text-xs font-bold">
-                    ADMIN
+            {/* Info Principal */}
+            <div className="flex-1 text-center lg:text-left">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-2">
+                <h1 className="heading-gamer text-3xl text-neutral-100">{usuario.nickname}</h1>
+                <div className="flex items-center justify-center lg:justify-start gap-2">
+                  {isAdmin && (
+                    <span className="bg-secondary-500 text-white px-3 py-0.5 rounded-full text-xs font-bold">ADMIN</span>
+                  )}
+                  <span className={`bg-gradient-to-r ${cores.bg} text-white px-3 py-0.5 rounded-full text-xs font-bold flex items-center gap-1`}>
+                    <Crown size={12} weight="fill" />
+                    {stats?.nivel?.nome || 'Bronze'}
                   </span>
-                )}
+                </div>
               </div>
               <p className="text-neutral-400 mb-3">{usuario.email}</p>
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-neutral-500">
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  Membro desde 2024
-                </span>
-                <span className="flex items-center gap-1">
-                  <GameController size={14} />
-                  ID: #{usuario.id}
-                </span>
-              </div>
+              
+              {/* Barra de Progresso do Nível */}
+              {stats && stats.nivel !== stats.proximoNivel && (
+                <div className="max-w-md mx-auto lg:mx-0">
+                  <div className="flex justify-between text-xs text-neutral-500 mb-1">
+                    <span>{stats.nivel?.nome}</span>
+                    <span>{stats.proximoNivel?.nome}</span>
+                  </div>
+                  <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full bg-gradient-to-r ${cores.bg} transition-all duration-500`}
+                      style={{ width: `${stats.progressoNivel}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {stats.comprasParaProximoNivel} compras para {stats.proximoNivel?.nome}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Ações */}
+            {/* Botões */}
             <div className="flex gap-2">
               {!editMode ? (
                 <button onClick={() => setEditMode(true)} className="btn-outline px-4 py-2 flex items-center gap-2 text-sm">
-                  <PencilSimple size={16} />
-                  Editar Perfil
+                  <PencilSimple size={16} /> Editar
                 </button>
               ) : (
                 <>
-                  <button onClick={handleSave} disabled={loading} className="btn-primary px-4 py-2 flex items-center gap-2 text-sm disabled:opacity-50">
-                    <FloppyDisk size={16} />
-                    {loading ? 'Salvando...' : 'Salvar'}
+                  <button onClick={handleSave} disabled={saving} className="btn-primary px-4 py-2 flex items-center gap-2 text-sm">
+                    <FloppyDisk size={16} /> {saving ? 'Salvando...' : 'Salvar'}
                   </button>
-                  <button onClick={handleCancel} disabled={loading} className="btn-outline px-4 py-2 flex items-center gap-2 text-sm">
-                    <X size={16} />
-                  </button>
+                  <button onClick={() => setEditMode(false)} className="btn-outline px-3 py-2"><X size={16} /></button>
                 </>
               )}
             </div>
@@ -158,116 +164,109 @@ const Perfil: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <div key={index} className="card-gaming p-4 text-center hover:border-primary-500/50 transition-colors">
-              <div className={`inline-flex p-3 rounded-full ${stat.bg} mb-2`}>
-                <stat.icon size={24} className={stat.color} weight="fill" />
-              </div>
-              <p className="text-2xl font-bold text-neutral-100">{stat.value}</p>
-              <p className="text-xs text-neutral-500">{stat.label}</p>
-            </div>
-          ))}
+          <StatCard icon={ShoppingCart} label="Compras" value={stats?.totalCompras || 0} color="text-primary-400" bg="bg-primary-500/10" />
+          <StatCard icon={Star} label="Avaliações" value={stats?.totalAvaliacoes || 0} color="text-yellow-400" bg="bg-yellow-500/10" />
+          <StatCard icon={Heart} label="Favoritos" value={stats?.totalFavoritos || 0} color="text-red-400" bg="bg-red-500/10" />
+          <StatCard icon={Trophy} label="Conquistas" value={`${stats?.totalConquistas || 0}/${stats?.conquistas?.length || 0}`} color="text-accent-400" bg="bg-accent-500/10" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Coluna Principal - Dados do Perfil */}
+          {/* Coluna Principal */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Formulário de Edição */}
+            {/* Conquistas */}
             <div className="card-gaming p-6">
               <h2 className="heading-sm text-neutral-100 mb-4 flex items-center gap-2">
-                <Gear size={20} className="text-primary-400" />
-                Informações da Conta
+                <Medal size={20} className="text-accent-400" /> Conquistas
               </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {stats?.conquistas?.map((c) => (
+                  <ConquistaCard key={c.codigo} conquista={c} />
+                ))}
+              </div>
+            </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-400 mb-1.5">Nickname</label>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={formData.nickname}
-                      onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
-                      className="input-gaming w-full"
-                    />
-                  ) : (
-                    <p className="text-neutral-100 bg-neutral-800/50 px-4 py-3 rounded-gaming">{usuario.nickname}</p>
-                  )}
+            {/* Gêneros Favoritos */}
+            {stats?.generosFavoritos && stats.generosFavoritos.length > 0 && (
+              <div className="card-gaming p-6">
+                <h2 className="heading-sm text-neutral-100 mb-4 flex items-center gap-2">
+                  <Fire size={20} className="text-orange-400" /> Gêneros Favoritos
+                </h2>
+                <div className="space-y-3">
+                  {stats.generosFavoritos.map((g, i) => (
+                    <div key={i}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-neutral-300">{g.nome}</span>
+                        <span className="text-neutral-500">{g.quantidade} jogos ({g.percentual}%)</span>
+                      </div>
+                      <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-primary-500 to-secondary-500" style={{ width: `${g.percentual}%` }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-400 mb-1.5">Email</label>
-                  {editMode ? (
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="input-gaming w-full"
-                    />
-                  ) : (
-                    <p className="text-neutral-100 bg-neutral-800/50 px-4 py-3 rounded-gaming">{usuario.email}</p>
-                  )}
-                </div>
-
-                {editMode && (
+            {/* Formulário de Edição */}
+            {editMode && (
+              <div className="card-gaming p-6">
+                <h2 className="heading-sm text-neutral-100 mb-4 flex items-center gap-2">
+                  <Gear size={20} className="text-primary-400" /> Editar Perfil
+                </h2>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-400 mb-1.5">
-                      Senha <span className="text-neutral-500">(para confirmar alterações)</span>
-                    </label>
+                    <label className="block text-sm text-neutral-400 mb-1">Nickname</label>
+                    <input type="text" value={formData.nickname} onChange={(e) => setFormData({ ...formData, nickname: e.target.value })} className="input-gaming w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-neutral-400 mb-1">Email</label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input-gaming w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-neutral-400 mb-1">Senha (para confirmar)</label>
                     <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={formData.senha}
-                        onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
-                        placeholder="Digite sua senha"
-                        className="input-gaming w-full pr-12"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors"
-                      >
+                      <input type={showPassword ? 'text' : 'password'} value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} placeholder="Digite sua senha" className="input-gaming w-full pr-12" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white">
                         {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
-                    <p className="text-xs text-neutral-500 mt-1">Mínimo 8 caracteres</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-400 mb-1.5">ID do Usuário</label>
-                    <p className="text-neutral-500 bg-neutral-800/50 px-4 py-3 rounded-gaming">#{usuario.id}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-400 mb-1.5">Tipo de Conta</label>
-                    <p className="text-neutral-100 bg-neutral-800/50 px-4 py-3 rounded-gaming">
-                      {isAdmin ? '👑 Administrador' : '🎮 Gamer'}
-                    </p>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Coluna Lateral - Links Rápidos */}
+          {/* Coluna Lateral */}
           <div className="space-y-6">
-            {/* Meus Pedidos */}
+            {/* Últimas Compras */}
             <div className="card-gaming p-6">
               <h2 className="heading-sm text-neutral-100 mb-4 flex items-center gap-2">
-                <Package size={20} className="text-accent-400" />
-                Meus Pedidos
+                <Package size={20} className="text-accent-400" /> Últimas Compras
               </h2>
-              <Link
-                to="/pedidos"
-                className="block p-4 bg-neutral-800/50 hover:bg-neutral-800 rounded-gaming transition-colors group"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-neutral-100 mb-1">Ver Histórico</h3>
-                    <p className="text-sm text-neutral-500">Acompanhe suas compras</p>
-                  </div>
-                  <ArrowRight size={20} className="text-accent-500 group-hover:translate-x-1 transition-transform" />
+              {stats?.ultimasCompras && stats.ultimasCompras.length > 0 ? (
+                <div className="space-y-3">
+                  {stats.ultimasCompras.map((c) => (
+                    <div key={c.pedidoId} className="flex items-center gap-3 p-2 bg-neutral-800/50 rounded-lg">
+                      <div className="w-12 h-12 bg-neutral-700 rounded overflow-hidden flex-shrink-0">
+                        {c.produtoImagem ? (
+                          <img src={c.produtoImagem} alt={c.produtoNome} className="w-full h-full object-cover" />
+                        ) : (
+                          <GameController size={24} className="w-full h-full p-2 text-neutral-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-neutral-200 truncate">{c.produtoNome}</p>
+                        <p className="text-xs text-neutral-500">{new Date(c.data).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      <span className="text-sm text-accent-400 font-bold">R$ {c.valor.toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                <p className="text-neutral-500 text-sm text-center py-4">Nenhuma compra ainda</p>
+              )}
+              <Link to="/pedidos" className="block mt-4 text-center text-sm text-primary-400 hover:text-primary-300">
+                Ver histórico completo <ArrowRight size={14} className="inline" />
               </Link>
             </div>
 
@@ -275,20 +274,9 @@ const Perfil: React.FC = () => {
             <div className="card-gaming p-6">
               <h2 className="heading-sm text-neutral-100 mb-4">Acesso Rápido</h2>
               <div className="space-y-2">
-                <Link to="/favoritos" className="flex items-center gap-3 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-gaming transition-colors group">
-                  <Heart size={18} className="text-red-400" />
-                  <span className="text-neutral-300 group-hover:text-white transition-colors">Meus Favoritos</span>
-                  <span className="ml-auto text-xs bg-neutral-700 px-2 py-0.5 rounded-full">{totalFavoritos}</span>
-                </Link>
-                <Link to="/carrinho" className="flex items-center gap-3 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-gaming transition-colors group">
-                  <ShoppingCart size={18} className="text-primary-400" />
-                  <span className="text-neutral-300 group-hover:text-white transition-colors">Meu Carrinho</span>
-                  <span className="ml-auto text-xs bg-neutral-700 px-2 py-0.5 rounded-full">{totalItens}</span>
-                </Link>
-                <Link to="/produtos" className="flex items-center gap-3 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-gaming transition-colors group">
-                  <GameController size={18} className="text-secondary-400" />
-                  <span className="text-neutral-300 group-hover:text-white transition-colors">Explorar Jogos</span>
-                </Link>
+                <QuickLink to="/favoritos" icon={Heart} label="Meus Favoritos" count={stats?.totalFavoritos} color="text-red-400" />
+                <QuickLink to="/carrinho" icon={ShoppingCart} label="Meu Carrinho" count={stats?.totalItensCarrinho} color="text-primary-400" />
+                <QuickLink to="/produtos" icon={GameController} label="Explorar Jogos" color="text-secondary-400" />
               </div>
             </div>
 
@@ -296,26 +284,26 @@ const Perfil: React.FC = () => {
             {isAdmin && (
               <div className="card-gaming p-6 border-secondary-500/30">
                 <h2 className="heading-sm text-secondary-400 mb-4 flex items-center gap-2">
-                  <Shield size={20} weight="fill" />
-                  Painel Admin
+                  <Shield size={20} weight="fill" /> Painel Admin
                 </h2>
                 <div className="space-y-2">
-                  <Link to="/admin/igdb" className="flex items-center gap-3 p-3 bg-secondary-500/10 hover:bg-secondary-500/20 rounded-gaming transition-colors text-secondary-300 hover:text-secondary-200">
-                    <span>🎮</span>
-                    <span>Importar IGDB</span>
-                  </Link>
-                  <Link to="/cadastrarProduto" className="flex items-center gap-3 p-3 bg-secondary-500/10 hover:bg-secondary-500/20 rounded-gaming transition-colors text-secondary-300 hover:text-secondary-200">
-                    <span>➕</span>
-                    <span>Cadastrar Produto</span>
-                  </Link>
-                  <Link to="/categorias" className="flex items-center gap-3 p-3 bg-secondary-500/10 hover:bg-secondary-500/20 rounded-gaming transition-colors text-secondary-300 hover:text-secondary-200">
-                    <span>📁</span>
-                    <span>Categorias</span>
-                  </Link>
-                  <Link to="/admin/produtos" className="flex items-center gap-3 p-3 bg-secondary-500/10 hover:bg-secondary-500/20 rounded-gaming transition-colors text-secondary-300 hover:text-secondary-200">
-                    <span>📦</span>
-                    <span>Gerenciar Produtos</span>
-                  </Link>
+                  <AdminLink to="/admin/igdb" emoji="🎮" label="Importar IGDB" />
+                  <AdminLink to="/cadastrarProduto" emoji="➕" label="Cadastrar Produto" />
+                  <AdminLink to="/categorias" emoji="📁" label="Categorias" />
+                  <AdminLink to="/admin/produtos" emoji="📦" label="Gerenciar Produtos" />
+                </div>
+              </div>
+            )}
+
+            {/* Total Gasto */}
+            {stats && stats.totalGasto > 0 && (
+              <div className="card-gaming p-6 bg-gradient-to-br from-accent-500/10 to-transparent">
+                <div className="flex items-center gap-3">
+                  <TrendingUp size={32} className="text-accent-400" />
+                  <div>
+                    <p className="text-xs text-neutral-500">Total investido em games</p>
+                    <p className="text-2xl font-bold text-accent-400">R$ {stats.totalGasto.toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -325,5 +313,47 @@ const Perfil: React.FC = () => {
     </div>
   );
 };
+
+// Componentes auxiliares
+const StatCard = ({ icon: Icon, label, value, color, bg }: { icon: any; label: string; value: number | string; color: string; bg: string }) => (
+  <div className="card-gaming p-4 text-center hover:border-primary-500/50 transition-colors">
+    <div className={`inline-flex p-3 rounded-full ${bg} mb-2`}>
+      <Icon size={24} className={color} weight="fill" />
+    </div>
+    <p className="text-2xl font-bold text-neutral-100">{value}</p>
+    <p className="text-xs text-neutral-500">{label}</p>
+  </div>
+);
+
+const ConquistaCard = ({ conquista }: { conquista: ConquistaDTO }) => (
+  <div className={`p-3 rounded-lg border transition-all ${conquista.desbloqueada ? 'bg-accent-500/10 border-accent-500/30' : 'bg-neutral-800/50 border-neutral-700 opacity-50'}`}>
+    <div className="text-2xl mb-1">{conquista.icone}</div>
+    <p className={`text-sm font-semibold ${conquista.desbloqueada ? 'text-accent-400' : 'text-neutral-500'}`}>{conquista.nome}</p>
+    <p className="text-xs text-neutral-500 line-clamp-1">{conquista.descricao}</p>
+    {!conquista.desbloqueada && (
+      <div className="mt-2">
+        <div className="h-1 bg-neutral-700 rounded-full overflow-hidden">
+          <div className="h-full bg-neutral-500" style={{ width: `${(conquista.progresso / conquista.meta) * 100}%` }} />
+        </div>
+        <p className="text-xs text-neutral-600 mt-1">{conquista.progresso}/{conquista.meta}</p>
+      </div>
+    )}
+  </div>
+);
+
+const QuickLink = ({ to, icon: Icon, label, count, color }: { to: string; icon: any; label: string; count?: number; color: string }) => (
+  <Link to={to} className="flex items-center gap-3 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-gaming transition-colors group">
+    <Icon size={18} className={color} />
+    <span className="text-neutral-300 group-hover:text-white transition-colors">{label}</span>
+    {count !== undefined && <span className="ml-auto text-xs bg-neutral-700 px-2 py-0.5 rounded-full">{count}</span>}
+  </Link>
+);
+
+const AdminLink = ({ to, emoji, label }: { to: string; emoji: string; label: string }) => (
+  <Link to={to} className="flex items-center gap-3 p-3 bg-secondary-500/10 hover:bg-secondary-500/20 rounded-gaming transition-colors text-secondary-300 hover:text-secondary-200">
+    <span>{emoji}</span>
+    <span>{label}</span>
+  </Link>
+);
 
 export default Perfil;
