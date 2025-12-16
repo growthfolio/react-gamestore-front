@@ -178,7 +178,7 @@ function Home() {
             className="group card-gaming overflow-hidden hover:shadow-glow-md hover:-translate-y-1 cursor-pointer relative"
             onClick={() => navigate(`/produtos/${produto.id}`)}
         >
-            <div className="relative h-64 bg-neutral-800 overflow-hidden">
+            <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">
                 <img
                     src={produto.imagens?.[0] || '/placeholder-game.png'}
                     alt={produto.nome}
@@ -210,58 +210,49 @@ function Home() {
                 </div>
             </div>
 
-            <div className="p-4">
-                <h3 className="heading-sm text-neutral-0 mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-primary-400 transition-colors">{produto.nome}</h3>
+            <div className="p-3">
+                <h3 className="body-base font-semibold text-neutral-0 mb-1 line-clamp-1 group-hover:text-primary-400 transition-colors">{produto.nome}</h3>
                 
-                <div className="flex items-center gap-1 mb-2">
+                <div className="flex items-center gap-1 mb-1">
                     {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={16} weight="fill" className="text-yellow-400" />
+                        <Star key={i} size={12} weight="fill" className="text-yellow-400" />
                     ))}
-                    <span className="body-sm text-neutral-400 ml-1">(4.8)</span>
+                    <span className="body-xs text-neutral-400 ml-1">(4.8)</span>
                 </div>
 
                 {produto.plataforma && (
-                    <span className="badge-gaming bg-neutral-800 text-neutral-300 px-2 py-1 rounded mb-2">
+                    <span className="badge-gaming bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded text-xs mb-1 inline-block">
                         {produto.plataforma}
                     </span>
                 )}
 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mt-1">
                     {produto.desconto && produto.desconto > 0 ? (
                         <>
-                            <span className="text-neutral-500 line-through body-sm">
+                            <span className="text-neutral-500 line-through body-xs">
                                 R$ {produto.preco.toFixed(2)}
                             </span>
-                            <span className="price-gaming text-xl">
+                            <span className="price-gaming text-base">
                                 R$ {(produto.preco * (1 - produto.desconto / 100)).toFixed(2)}
                             </span>
                         </>
                     ) : (
-                        <span className="price-gaming text-xl">
+                        <span className="price-gaming text-base">
                             R$ {produto.preco.toFixed(2)}
                         </span>
                     )}
                 </div>
-
-                {produto.estoque && produto.estoque > 0 ? (
-                    <span className="body-sm text-success-500 flex items-center gap-1">
-                        <span className="w-2 h-2 bg-success-500 rounded-full"></span>
-                        Em estoque
-                    </span>
-                ) : (
-                    <span className="body-sm text-error-500 font-bold">Esgotado</span>
-                )}
             </div>
         </div>
     );
 
     const SkeletonCard = () => (
         <div className="card-gaming overflow-hidden animate-pulse">
-            <div className="h-64 bg-neutral-800"></div>
-            <div className="p-4">
+            <div className="h-48 bg-neutral-800"></div>
+            <div className="p-3">
                 <div className="h-4 bg-neutral-700 rounded mb-2"></div>
-                <div className="h-4 bg-neutral-700 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-neutral-700 rounded w-1/2"></div>
+                <div className="h-3 bg-neutral-700 rounded w-3/4 mb-2"></div>
+                <div className="h-5 bg-neutral-700 rounded w-1/2"></div>
             </div>
         </div>
     );

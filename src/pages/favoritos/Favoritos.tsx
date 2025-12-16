@@ -102,7 +102,7 @@ const Favoritos = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {produtos.map(produto => (
                             <div 
                                 key={produto.id} 
@@ -111,7 +111,7 @@ const Favoritos = () => {
                             >
                                 {/* Imagem */}
                                 <div 
-                                    className="relative w-full h-48 overflow-hidden cursor-pointer group"
+                                    className="relative w-full h-40 overflow-hidden cursor-pointer group"
                                     onClick={() => handleVerDetalhes(produto.id)}
                                 >
                                     <img 
@@ -129,74 +129,63 @@ const Favoritos = () => {
                                 </div>
 
                                 {/* Info */}
-                                <div className="p-4">
+                                <div className="p-3">
                                     <h3 
-                                        className="font-gaming font-semibold text-neutral-100 mb-2 
+                                        className="font-gaming font-semibold text-neutral-100 mb-1 
                                                    cursor-pointer hover:text-primary-400 transition-colors
-                                                   line-clamp-2 min-h-[3rem]"
+                                                   line-clamp-1 text-sm"
                                         onClick={() => handleVerDetalhes(produto.id)}
                                     >
                                         {produto.nome}
                                     </h3>
                                     
                                     {produto.plataforma && (
-                                        <span className="inline-block bg-neutral-800 px-2 py-1 rounded 
-                                                       text-xs text-neutral-400 mb-2">
+                                        <span className="inline-block bg-neutral-800 px-2 py-0.5 rounded 
+                                                       text-xs text-neutral-400 mb-1">
                                             {produto.plataforma}
                                         </span>
                                     )}
 
-                                    <div className="flex items-center gap-2 mb-2">
+                                    <div className="flex items-center gap-2">
                                         {produto.desconto && produto.desconto > 0 ? (
                                             <>
-                                                <span className="line-through text-neutral-500 text-sm">
+                                                <span className="line-through text-neutral-500 text-xs">
                                                     R$ {produto.preco.toFixed(2)}
                                                 </span>
-                                                <span className="text-accent-500 font-bold text-lg">
+                                                <span className="text-accent-500 font-bold text-base">
                                                     R$ {(produto.preco * (1 - produto.desconto / 100)).toFixed(2)}
                                                 </span>
                                             </>
                                         ) : (
-                                            <span className="text-accent-500 font-bold text-lg">
+                                            <span className="text-accent-500 font-bold text-base">
                                                 R$ {produto.preco.toFixed(2)}
                                             </span>
                                         )}
                                     </div>
-
-                                    {produto.estoque && produto.estoque > 0 ? (
-                                        <span className="text-xs text-accent-500 flex items-center gap-1">
-                                            <span className="w-2 h-2 bg-accent-500 rounded-full"></span>
-                                            {produto.estoque} em estoque
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs text-red-500 font-semibold">
-                                            Fora de estoque
-                                        </span>
-                                    )}
                                 </div>
 
                                 {/* Ações */}
-                                <div className="flex gap-2 p-4 pt-0">
+                                <div className="flex gap-2 px-3 pb-3">
                                     <button
-                                        className="flex-1 flex items-center justify-center gap-2 
-                                                   px-4 py-2 bg-accent-500 text-neutral-950 rounded-lg
-                                                   hover:bg-accent-400 transition-colors font-semibold
+                                        className="flex-1 flex items-center justify-center gap-1 
+                                                   px-3 py-1.5 bg-accent-500 text-neutral-950 rounded-lg
+                                                   hover:bg-accent-400 transition-colors font-semibold text-sm
                                                    disabled:bg-neutral-700 disabled:text-neutral-500 
                                                    disabled:cursor-not-allowed"
                                         onClick={() => handleAdicionarCarrinho(produto)}
                                         disabled={!produto.estoque || produto.estoque === 0}
                                         title="Adicionar ao carrinho"
                                     >
-                                        <ShoppingCart size={16} />
+                                        <ShoppingCart size={14} />
                                         Adicionar
                                     </button>
                                     <button
-                                        className="p-2 bg-red-500/10 text-red-400 rounded-lg
+                                        className="p-1.5 bg-red-500/10 text-red-400 rounded-lg
                                                    hover:bg-red-500/20 transition-colors"
                                         onClick={() => handleRemoverFavorito(produto.id)}
                                         title="Remover dos favoritos"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             </div>
