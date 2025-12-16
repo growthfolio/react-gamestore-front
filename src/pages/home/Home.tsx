@@ -600,15 +600,39 @@ function Home() {
             </div>
 
             {/* Call to Action */}
-            <div className="bg-gradient-gaming py-16 my-12">
-                <div className="container mx-auto px-6 text-center">
-                    <h2 className="heading-gamer heading-lg mb-6 text-glow-primary">Os Melhores Jogos em um Só Lugar</h2>
-                    <p className="body-xl mb-8 text-neutral-200">Explore nosso catálogo completo de games para todas as plataformas</p>
+            <div className="relative my-12 overflow-hidden">
+                {/* Background com gradiente gaming - mesmo estilo das Ofertas Relâmpago */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-900/95 via-neutral-900/90 to-secondary-900/95"></div>
+                <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle,_#8700FF_1px,_transparent_1px)] bg-[length:32px_32px]"></div>
+                
+                {/* Efeitos de borda neon */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary-500 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-secondary-500 to-transparent"></div>
+                
+                {/* Efeitos laterais */}
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary-500/50 to-transparent"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-secondary-500/50 to-transparent"></div>
+                
+                <div className="relative container mx-auto px-6 py-16 text-center">
+                    {/* Decoração superior */}
+                    <div className="inline-flex items-center gap-4 mb-4">
+                        <div className="w-16 h-[2px] bg-gradient-to-r from-transparent to-primary-500"></div>
+                        <GameController size={32} weight="fill" className="text-primary-400 animate-pulse" />
+                        <div className="w-16 h-[2px] bg-gradient-to-l from-transparent to-primary-500"></div>
+                    </div>
+                    
+                    <h2 className="heading-gamer heading-lg mb-4 text-white">
+                        Os Melhores Jogos em um <span className="text-primary-400 text-glow-primary">Só Lugar</span>
+                    </h2>
+                    <p className="body-xl mb-8 text-neutral-300 max-w-2xl mx-auto">
+                        Explore nosso catálogo completo de games para todas as plataformas
+                    </p>
+                    
                     <button
                         onClick={() => navigate('/produtos')}
-                        className="btn-accent px-8 py-4 text-lg inline-flex items-center gap-3 transform hover:scale-105"
+                        className="group px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 rounded-gaming text-lg font-gaming uppercase tracking-wide transition-all duration-300 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-105 inline-flex items-center gap-3"
                     >
-                        <ShoppingCart size={24} weight="bold" />
+                        <ShoppingCart size={24} weight="bold" className="group-hover:animate-bounce" />
                         <span className="cta-gaming">Explorar Catálogo</span>
                     </button>
                 </div>
