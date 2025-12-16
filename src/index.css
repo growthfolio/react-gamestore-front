@@ -176,3 +176,50 @@
 .shadow-glow-secondary {
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
 }
+
+/* 🎮 Pacman Loader Animations */
+@keyframes pacman-top {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-30deg);
+  }
+}
+
+@keyframes pacman-bottom {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes pacman-dot {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+.animate-pacman-top {
+  animation: pacman-top ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-pacman-bottom {
+  animation: pacman-bottom ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.animate-pacman-dot {
+  animation: pacman-dot linear infinite;
+}

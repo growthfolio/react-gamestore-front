@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Dna } from 'react-loader-spinner';
 import { ShoppingCart, Heart, Star, ArrowLeft, User } from '@phosphor-icons/react';
+import { LoadingOverlay } from '../../components/loaders';
 import { Produto } from '../../models/produtos/Produto';
 import produtoService from '../../services/produto.service';
 import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/avaliacao.service';
@@ -120,9 +120,11 @@ function DetalheProduto() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[80vh] bg-neutral-950">
-        <Dna visible={true} height="100" width="100" ariaLabel="Carregando..." />
-      </div>
+      <LoadingOverlay 
+        isVisible={true} 
+        text="Carregando produto..." 
+        subtext="Buscando informações e avaliações"
+      />
     );
   }
 

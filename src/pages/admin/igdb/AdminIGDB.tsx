@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { IGDBGameTable } from '../../../components/admin/IGDBGameTable';
 import { IGDBImportModal } from '../../../components/admin/IGDBImportModal';
+import { LoadingModal } from '../../../components/loaders';
 import { FormInput, FormButton } from '../../../components/forms';
 import IgdbService, { IgdbSearchResult } from '../../../services/igdb.service';
 import ProdutoService from '../../../services/produto.service';
@@ -19,6 +20,8 @@ const AdminIGDB: React.FC = () => {
     const [page, setPage] = useState(1);
     const [gameToImport, setGameToImport] = useState<IgdbSearchResult | null>(null);
     const [importLoading, setImportLoading] = useState(false);
+    const [importingIds, setImportingIds] = useState<number[]>([]);
+    const [batchImportProgress, setBatchImportProgress] = useState<{ current: number; total: number } | null>(null);
 
     const fetchGames = useCallback(async (term?: string, pageNum: number = 1) => {
         try {
@@ -122,6 +125,50 @@ const AdminIGDB: React.FC = () => {
         }
     };
 
+    // Importação em lote (múltiplos jogos de uma vez)
+    const handleBatchImport = async (games: IgdbSearchResult[]) => {
+        const ids = games.map(g => g.igdbId);
+        setImportingIds(ids);
+        setBatchImportProgress({ current: 0, total: games.length });
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < games.length; i++) {
+            const game = games[i];
+            setBatchImportProgress({ current: i + 1, total: games.length });
+            
+            try {
+                await IgdbService.importGame(game.igdbId);
+                successCount++;
+                
+                // Atualiza estado para mostrar como importado
+                setSearchResults(prev => prev.map(item => 
+                    item.igdbId === game.igdbId 
+                        ? { ...item, jaImportado: true } 
+                        : item
+                ));
+                
+                // Remove do array de "importando"
+                setImportingIds(prev => prev.filter(id => id !== game.igdbId));
+            } catch (err) {
+                console.error(`Erro ao importar ${game.nome}:`, err);
+                errorCount++;
+                setImportingIds(prev => prev.filter(id => id !== game.igdbId));
+            }
+        }
+        
+        setBatchImportProgress(null);
+        
+        // Feedback final
+        if (successCount > 0 && errorCount === 0) {
+            success('Importação concluída', `${successCount} jogo${successCount > 1 ? 's' : ''} importado${successCount > 1 ? 's' : ''} com sucesso!`);
+        } else if (successCount > 0 && errorCount > 0) {
+            success('Importação parcial', `${successCount} importado${successCount > 1 ? 's' : ''}, ${errorCount} erro${errorCount > 1 ? 's' : ''}`);
+        } else {
+            toastError('Erro na importação', 'Não foi possível importar os jogos selecionados');
+        }
+    };
     if (!isAdmin) {
         return null;
     }
@@ -227,7 +274,10 @@ const AdminIGDB: React.FC = () => {
                         
                         <IGDBGameTable 
                             games={searchResults} 
-                            onImport={handleImportGame} 
+                            onImport={handleImportGame}
+                            onBatchImport={handleBatchImport}
+                            loading={loading}
+                            importingIds={importingIds}
                         />
 
                         {/* Paginação Inferior - Completa */}
@@ -279,6 +329,14 @@ const AdminIGDB: React.FC = () => {
                     isLoading={importLoading}
                 />
             )}
+
+            {/* Loading Modal para importação em lote */}
+            <LoadingModal 
+                isVisible={batchImportProgress !== null} 
+                title="Importando jogos..." 
+                description="Aguarde enquanto importamos os jogos selecionados..."
+                counter={batchImportProgress || undefined}
+            />
         </div>
     );
 };
