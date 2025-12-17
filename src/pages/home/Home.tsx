@@ -9,10 +9,71 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
 import produtoService, { Produto } from '../../services/produto.service';
 import categoriaService, { Categoria } from '../../services/categoria.service';
+import bannerService, { Banner } from '../../services/banner.service';
 import { ShoppingCart, GameController, Heart, Star, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
 import RecentlyViewed from '../../components/produtos/RecentlyViewed';
+
+// Banners fallback (usados quando não há banners cadastrados)
+const defaultHeroSlides = [
+    { 
+        id: 'default-1', 
+        urlImagem: 'https://cdn2.unrealengine.com/egs-prince-of-persia-lost-crown-carousel-desktop-1920x1080-c7ae57efc8ab.jpg?h=720&quality=medium&resize=1&w=1280',
+        titulo: 'Prince of Persia: The Lost Crown',
+        subtitulo: 'Aventura épica te aguarda',
+        tipo: 'CUSTOM' as const,
+        produtoId: null,
+        produtoSlug: null,
+        linkCustom: '/produtos',
+        textoBotao: 'Ver jogos'
+    },
+    { 
+        id: 'default-2', 
+        urlImagem: 'https://cdn2.unrealengine.com/egs-skull-and-bones-carousel-desktop-1248x702-8814fa009b18.jpg?h=720&quality=medium&resize=1&w=1280',
+        titulo: 'Skull and Bones',
+        subtitulo: 'Navegue pelos mares perigosos',
+        tipo: 'CUSTOM' as const,
+        produtoId: null,
+        produtoSlug: null,
+        linkCustom: '/produtos',
+        textoBotao: 'Ver jogos'
+    },
+    { 
+        id: 'default-3', 
+        urlImagem: 'https://cdn2.unrealengine.com/egs-stalker-2-carousel-desktop-1920x1080-5c65e98f5d81.jpg?h=720&quality=medium&resize=1&w=1280',
+        titulo: 'S.T.A.L.K.E.R. 2',
+        subtitulo: 'Sobreviva na zona radioativa',
+        tipo: 'CUSTOM' as const,
+        produtoId: null,
+        produtoSlug: null,
+        linkCustom: '/produtos',
+        textoBotao: 'Ver jogos'
+    },
+    { 
+        id: 'default-4', 
+        urlImagem: 'https://cdn2.unrealengine.com/egs-horizon-forbidden-west-carousel-desktop-1920x1080-358478b6468a.jpg?h=720&quality=medium&resize=1&w=1280',
+        titulo: 'Horizon Forbidden West',
+        subtitulo: 'Explore o oeste proibido',
+        tipo: 'CUSTOM' as const,
+        produtoId: null,
+        produtoSlug: null,
+        linkCustom: '/produtos',
+        textoBotao: 'Ver jogos'
+    },
+];
+
+interface HeroSlide {
+    id: string | number;
+    urlImagem: string;
+    titulo: string;
+    subtitulo: string | null;
+    tipo: 'PRODUTO' | 'CUSTOM' | 'CATEGORIA';
+    produtoId: number | null;
+    produtoSlug: string | null;
+    linkCustom: string | null;
+    textoBotao: string | null;
+}
 
 function Home() {
     const navigate = useNavigate();
@@ -23,6 +84,7 @@ function Home() {
     const [produtosOfertas, setProdutosOfertas] = useState<Produto[]>([]);
     const [produtosLancamentos, setProdutosLancamentos] = useState<Produto[]>([]);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(defaultHeroSlides);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'destaque' | 'lancamentos'>('destaque');
     const [email, setEmail] = useState('');
@@ -43,7 +105,7 @@ function Home() {
         try {
             setLoading(true);
             
-            // Carrega produtos e categorias separadamente para evitar falha total
+            // Carrega produtos, categorias e banners separadamente para evitar falha total
             const produtosPromise = produtoService.listar({ page: 0, size: 12, sort: 'nome,asc' })
                 .catch(err => {
                     console.error('Erro ao carregar produtos:', err);
@@ -55,10 +117,17 @@ function Home() {
                     console.error('Erro ao carregar categorias:', err);
                     return { content: [] };
                 });
+
+            const bannersPromise = bannerService.listarAtivos()
+                .catch(err => {
+                    console.error('Erro ao carregar banners:', err);
+                    return [] as Banner[];
+                });
             
-            const [produtosResponse, categoriasResponse] = await Promise.all([
+            const [produtosResponse, categoriasResponse, bannersResponse] = await Promise.all([
                 produtosPromise,
-                categoriasPromise
+                categoriasPromise,
+                bannersPromise
             ]);
             
             const produtos = produtosResponse.content || [];
@@ -66,6 +135,22 @@ function Home() {
             setProdutosOfertas(produtos.filter(p => p.desconto && p.desconto > 0).slice(0, 4));
             setProdutosLancamentos(produtos.slice(8, 16));
             setCategorias(categoriasResponse.content?.slice(0, 6) || []);
+            
+            // Se há banners cadastrados, usa eles; senão usa os padrão
+            if (bannersResponse && bannersResponse.length > 0) {
+                const slides: HeroSlide[] = bannersResponse.map(banner => ({
+                    id: banner.id,
+                    urlImagem: banner.urlImagem,
+                    titulo: banner.titulo,
+                    subtitulo: banner.subtitulo,
+                    tipo: banner.tipo,
+                    produtoId: banner.produtoId,
+                    produtoSlug: banner.produtoSlug,
+                    linkCustom: banner.linkCustom,
+                    textoBotao: banner.textoBotao
+                }));
+                setHeroSlides(slides);
+            }
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
             // Falha silenciosa - define arrays vazios
@@ -108,33 +193,6 @@ function Home() {
         const secs = seconds % 60;
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
-
-    const heroSlides = [
-        { 
-            id: '1', 
-            image: 'https://cdn2.unrealengine.com/egs-prince-of-persia-lost-crown-carousel-desktop-1920x1080-c7ae57efc8ab.jpg?h=720&quality=medium&resize=1&w=1280',
-            title: 'Prince of Persia: The Lost Crown',
-            subtitle: 'Aventura épica te aguarda'
-        },
-        { 
-            id: '2', 
-            image: 'https://cdn2.unrealengine.com/egs-skull-and-bones-carousel-desktop-1248x702-8814fa009b18.jpg?h=720&quality=medium&resize=1&w=1280',
-            title: 'Skull and Bones',
-            subtitle: 'Navegue pelos mares perigosos'
-        },
-        { 
-            id: '3', 
-            image: 'https://cdn2.unrealengine.com/egs-stalker-2-carousel-desktop-1920x1080-5c65e98f5d81.jpg?h=720&quality=medium&resize=1&w=1280',
-            title: 'S.T.A.L.K.E.R. 2',
-            subtitle: 'Sobreviva na zona radioativa'
-        },
-        { 
-            id: '4', 
-            image: 'https://cdn2.unrealengine.com/egs-horizon-forbidden-west-carousel-desktop-1920x1080-358478b6468a.jpg?h=720&quality=medium&resize=1&w=1280',
-            title: 'Horizon Forbidden West',
-            subtitle: 'Explore o oeste proibido'
-        },
-    ];
 
     const testimonials = [
         { name: 'João Silva', text: 'Melhor loja de jogos! Entrega rápida e preços imbatíveis.', rating: 5 },
@@ -250,12 +308,28 @@ function Home() {
                     modules={[Pagination, Navigation, Autoplay, EffectFade]}
                     className="mySwiper rounded-gaming overflow-hidden border border-neutral-800"
                 >
-                    {heroSlides.map((item, index) => (
-                        <SwiperSlide key={item.id}>
+                    {heroSlides.map((slide, index) => {
+                        // Determina o link de destino baseado no tipo do banner
+                        const handleBannerClick = () => {
+                            if (slide.tipo === 'PRODUTO' && slide.produtoId) {
+                                navigate(`/produtos/${slide.produtoId}`);
+                            } else if (slide.linkCustom) {
+                                if (slide.linkCustom.startsWith('http')) {
+                                    window.open(slide.linkCustom, '_blank');
+                                } else {
+                                    navigate(slide.linkCustom);
+                                }
+                            } else {
+                                navigate('/produtos');
+                            }
+                        };
+
+                        return (
+                        <SwiperSlide key={slide.id}>
                             <div className="relative group">
                                 <img
-                                    src={item.image}
-                                    alt={item.title}
+                                    src={slide.urlImagem}
+                                    alt={slide.titulo}
                                     className="slide-item w-full h-[500px] md:h-[600px] object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
@@ -266,22 +340,24 @@ function Home() {
                                     <div className="text-center text-white px-6 max-w-4xl">
                                         <div className="mb-4">
                                             <span className="badge-gaming bg-accent-500 text-neutral-900 px-4 py-2 rounded-full">
-                                                DESTAQUE #{index + 1}
+                                                {slide.tipo === 'PRODUTO' ? 'JOGO EM DESTAQUE' : `DESTAQUE #${index + 1}`}
                                             </span>
                                         </div>
                                         <h1 className="heading-gamer text-4xl md:text-6xl mb-6 text-glow-primary animate-fade-in">
-                                            {item.title}
+                                            {slide.titulo}
                                         </h1>
+                                        {slide.subtitulo && (
                                         <p className="body-xl mb-8 text-neutral-200 max-w-2xl mx-auto">
-                                            {item.subtitle}
+                                            {slide.subtitulo}
                                         </p>
+                                        )}
                                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                             <button
-                                                onClick={() => navigate('/produtos')}
+                                                onClick={handleBannerClick}
                                                 className="btn-primary px-8 py-4 text-lg transform hover:scale-105 shadow-glow-md inline-flex items-center gap-3"
                                             >
                                                 <Fire size={24} weight="fill" />
-                                                <span className="cta-gaming">Explorar Agora</span>
+                                                <span className="cta-gaming">{slide.textoBotao || 'Ver Agora'}</span>
                                             </button>
                                             <button
                                                 onClick={() => navigate('/produtos')}
@@ -302,7 +378,8 @@ function Home() {
                                 </div>
                             </div>
                         </SwiperSlide>
-                    ))}
+                        );
+                    })}
                     
                     {/* Custom Navigation Buttons */}
                     <div className="swiper-button-prev-gaming absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-neutral-900/80 hover:bg-primary-600 rounded-full flex items-center justify-center transition-all cursor-pointer group border border-neutral-700 hover:border-primary-500">
