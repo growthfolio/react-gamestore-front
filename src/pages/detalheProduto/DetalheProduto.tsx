@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Star, User, ShareNetwork, WhatsappLogo, TwitterLogo, Link as LinkIcon, Warning } from '@phosphor-icons/react';
+import { ShoppingCart, Heart, Star, User, ShareNetwork, WhatsappLogo, TwitterLogo, Link as LinkIcon, Warning, Play, X } from '@phosphor-icons/react';
 import { LoadingOverlay } from '../../components/loaders';
-import { Produto } from '../../models/produtos/Produto';
+import { ProdutoDetalhe, ImagemMedia, VideoMedia, getBestImageUrl, getBestVideoThumb } from '../../models/produtos/Media';
 import produtoService from '../../services/produto.service';
 import avaliacaoService, { Avaliacao, MediaAvaliacao } from '../../services/avaliacao.service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +14,11 @@ import FormularioAvaliacao from '../../components/avaliacoes/formularioAvaliacao
 import LoginSuggestionModal from '../../components/modals/LoginSuggestionModal';
 import ProductCarousel from '../../components/produtos/ProductCarousel';
 
+// Tipo unificado para item de galeria (imagem ou vídeo)
+type GalleryItem = 
+  | { type: 'image'; data: ImagemMedia }
+  | { type: 'video'; data: VideoMedia };
+
 function DetalheProduto() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -22,17 +27,29 @@ function DetalheProduto() {
   const { isFavorito, toggleFavorito } = useFavoritos();
   const toast = useToast();
 
-  const [produto, setProduto] = useState<Produto | null>(null);
+  const [produto, setProduto] = useState<ProdutoDetalhe | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [mediaAvaliacao, setMediaAvaliacao] = useState<MediaAvaliacao | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [quantidade, setQuantidade] = useState(1);
-  const [imagemAtual, setImagemAtual] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [favorito, setFavorito] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginAction] = useState<'favorite' | 'cart' | 'checkout'>('cart');
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [activeTab, setActiveTab] = useState<'descricao' | 'avaliacoes'>('descricao');
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<VideoMedia | null>(null);
+
+  // Combina screenshots, artworks e vídeos para a galeria (exclui a capa)
+  const galleryItems: GalleryItem[] = produto?.midia ? [
+    // Primeiro os vídeos (trailers)
+    ...produto.midia.videos.map(v => ({ type: 'video' as const, data: v })),
+    // Depois screenshots
+    ...produto.midia.screenshots.map(img => ({ type: 'image' as const, data: img })),
+    // Por fim artworks
+    ...produto.midia.artworks.map(img => ({ type: 'image' as const, data: img })),
+  ] : [];
 
   useEffect(() => {
     // Scroll para o topo ao carregar a página
@@ -63,7 +80,7 @@ function DetalheProduto() {
   async function carregarProduto() {
     try {
       setIsLoading(true);
-      const produtoData = await produtoService.buscarPorId(Number(id));
+      const produtoData = await produtoService.buscarDetalhe(Number(id));
       setProduto(produtoData);
     } catch (error) {
       console.error('Erro ao carregar produto:', error);
@@ -158,17 +175,56 @@ function DetalheProduto() {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Galeria de Imagens */}
+          {/* Galeria de Mídia (Imagens e Vídeos) */}
           <div className="space-y-4">
             <div className="card-gaming overflow-hidden aspect-video flex items-center justify-center relative">
-              {produto.imagens && produto.imagens.length > 0 ? (
-                <img src={produto.imagens[imagemAtual]} alt={produto.nome} className="w-full h-full object-cover" />
+              {galleryItems.length > 0 ? (
+                <>
+                  {galleryItems[selectedIndex]?.type === 'video' ? (
+                    // Thumbnail do vídeo com botão de play
+                    <div 
+                      className="w-full h-full relative cursor-pointer group"
+                      onClick={() => {
+                        setSelectedVideo(galleryItems[selectedIndex].data as VideoMedia);
+                        setShowVideoModal(true);
+                      }}
+                    >
+                      <img 
+                        src={getBestVideoThumb(galleryItems[selectedIndex].data as VideoMedia, 'large') || ''} 
+                        alt={`Vídeo: ${(galleryItems[selectedIndex].data as VideoMedia).titulo}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-500/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play size={32} weight="fill" className="text-white ml-1" />
+                        </div>
+                      </div>
+                      <span className="absolute bottom-3 left-3 px-2 py-1 bg-black/70 rounded text-sm text-neutral-200">
+                        {(galleryItems[selectedIndex].data as VideoMedia).titulo || 'Trailer'}
+                      </span>
+                    </div>
+                  ) : (
+                    // Imagem normal (screenshot ou artwork)
+                    <img 
+                      src={getBestImageUrl(galleryItems[selectedIndex].data as ImagemMedia, 'gallery') || ''} 
+                      alt={produto.nome} 
+                      className="w-full h-full object-cover" 
+                    />
+                  )}
+                </>
+              ) : produto.midia?.capa ? (
+                // Fallback para capa se não houver galeria
+                <img 
+                  src={getBestImageUrl(produto.midia.capa, 'gallery') || ''} 
+                  alt={produto.nome} 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 <div className="text-neutral-600 text-6xl">🎮</div>
               )}
               
               {/* Share Button */}
-              <div className="absolute top-4 right-4">
+              <div className="absolute top-4 right-4 z-10">
                 <button onClick={() => setShowShareMenu(!showShareMenu)} className="p-2 bg-neutral-900/80 rounded-full hover:bg-neutral-800 transition-colors">
                   <ShareNetwork size={20} className="text-neutral-300" />
                 </button>
@@ -189,18 +245,35 @@ function DetalheProduto() {
               </div>
             </div>
 
-            {/* Miniaturas */}
-            {produto.imagens && produto.imagens.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {produto.imagens.map((img, index) => (
+            {/* Miniaturas (Vídeos + Imagens) */}
+            {galleryItems.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-700">
+                {galleryItems.map((item, index) => (
                   <button
-                    key={index}
-                    onClick={() => setImagemAtual(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition-colors ${
-                      imagemAtual === index ? 'border-primary-500' : 'border-neutral-700 hover:border-neutral-500'
+                    key={`${item.type}-${item.data.id}`}
+                    onClick={() => setSelectedIndex(index)}
+                    className={`flex-shrink-0 w-24 h-14 rounded-lg border-2 overflow-hidden transition-colors relative ${
+                      selectedIndex === index ? 'border-primary-500 ring-1 ring-primary-500/50' : 'border-neutral-700 hover:border-neutral-500'
                     }`}
                   >
-                    <img src={img} alt={`${produto.nome} ${index + 1}`} className="w-full h-full object-cover" />
+                    {item.type === 'video' ? (
+                      <>
+                        <img 
+                          src={getBestVideoThumb(item.data, 'small') || ''} 
+                          alt={item.data.titulo} 
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <Play size={18} weight="fill" className="text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <img 
+                        src={getBestImageUrl(item.data, 'thumb') || ''} 
+                        alt={`${produto.nome} ${index + 1}`} 
+                        className="w-full h-full object-cover" 
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -382,6 +455,34 @@ function DetalheProduto() {
           icon={<span className="text-accent-400">⭐</span>}
         />
       </div>
+
+      {/* Modal de Vídeo */}
+      {showVideoModal && selectedVideo && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute -top-12 right-0 p-2 text-neutral-400 hover:text-white transition-colors z-10"
+            >
+              <X size={32} />
+            </button>
+            
+            <iframe
+              src={selectedVideo.urls?.embed || `https://www.youtube.com/embed/${selectedVideo.videoId}?autoplay=1`}
+              title={selectedVideo.titulo || 'Trailer'}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
 
       <LoginSuggestionModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} action={loginAction} productName={produto?.nome} />
     </div>
