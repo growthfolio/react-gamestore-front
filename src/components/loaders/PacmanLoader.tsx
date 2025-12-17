@@ -1,171 +1,243 @@
-import { memo, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
 
 interface PacmanLoaderProps {
-    size?: 'sm' | 'md' | 'lg' | 'xl';
-    color?: string;
-    dotColor?: string;
-    speed?: number;
-    text?: string;
-    className?: string;
-    ariaLabel?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  color?: string;
+  message?: string;
+  showDots?: boolean;
 }
 
-const sizeMap = {
-    sm: { pacman: 24, dot: 6, gap: 12 },
-    md: { pacman: 36, dot: 8, gap: 14 },
-    lg: { pacman: 48, dot: 10, gap: 16 },
-    xl: { pacman: 64, dot: 12, gap: 20 },
+const sizeConfig = {
+  sm: {
+    pacman: 32,
+    dot: 6,
+    gap: 12,
+  },
+  md: {
+    pacman: 48,
+    dot: 8,
+    gap: 16,
+  },
+  lg: {
+    pacman: 64,
+    dot: 10,
+    gap: 20,
+  },
+  xl: {
+    pacman: 80,
+    dot: 12,
+    gap: 24,
+  },
 };
 
-function PacmanLoaderComponent({
-    size = 'md',
-    color = '#FACC15',
-    dotColor = '#00FFFF',
-    speed = 400,
-    text,
-    className = '',
-    ariaLabel = 'Carregando...',
-}: PacmanLoaderProps) {
-    const dimensions = sizeMap[size];
+export const PacmanLoader = ({
+  size = 'md',
+  color = '#FFD700',
+  message,
+  showDots = true,
+}: PacmanLoaderProps) => {
+  const config = sizeConfig[size];
+  const [dotIndex, setDotIndex] = useState(0);
+
+  // Animate dots being eaten
+  useEffect(() => {
+    if (!showDots) return;
     
-    const animationStyles = useMemo(() => ({
-        animationDuration: `${speed}ms`,
-    }), [speed]);
+    const interval = setInterval(() => {
+      setDotIndex((prev) => (prev + 1) % 4);
+    }, 200);
+    
+    return () => clearInterval(interval);
+  }, [showDots]);
 
-    return (
+  // Pacman mouth animation variants
+  const topHalfVariants = {
+    animate: {
+      rotate: [0, -30, 0],
+      transition: {
+        duration: 0.3,
+        repeat: Infinity,
+        ease: 'easeInOut' as const,
+      },
+    },
+  };
+
+  const bottomHalfVariants = {
+    animate: {
+      rotate: [0, 30, 0],
+      transition: {
+        duration: 0.3,
+        repeat: Infinity,
+        ease: 'easeInOut' as const,
+      },
+    },
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4">
+      <div className="flex items-center gap-2">
+        {/* Pacman - using proper circle proportions */}
         <div 
-            className={`flex flex-col items-center justify-center gap-4 ${className}`}
-            role="status"
-            aria-label={ariaLabel}
+          className="relative"
+          style={{ 
+            width: config.pacman, 
+            height: config.pacman,
+          }}
         >
-            <div 
-                className="relative flex items-center"
-                style={{ height: dimensions.pacman, minWidth: dimensions.pacman * 3.5 }}
-            >
-                {/* Pacman - círculo completo com boca */}
-                <div 
-                    className="relative z-10 flex-shrink-0"
-                    style={{ width: dimensions.pacman, height: dimensions.pacman }}
-                >
-                    {/* Parte superior */}
-                    <div 
-                        className="absolute animate-pacman-top"
-                        style={{
-                            ...animationStyles,
-                            width: dimensions.pacman,
-                            height: dimensions.pacman / 2,
-                            background: color,
-                            borderTopLeftRadius: dimensions.pacman,
-                            borderTopRightRadius: dimensions.pacman,
-                            transformOrigin: 'center bottom',
-                        }}
-                    />
-                    {/* Parte inferior */}
-                    <div 
-                        className="absolute animate-pacman-bottom"
-                        style={{
-                            ...animationStyles,
-                            width: dimensions.pacman,
-                            height: dimensions.pacman / 2,
-                            top: dimensions.pacman / 2,
-                            background: color,
-                            borderBottomLeftRadius: dimensions.pacman,
-                            borderBottomRightRadius: dimensions.pacman,
-                            transformOrigin: 'center top',
-                        }}
-                    />
-                    {/* Olho */}
-                    <div 
-                        className="absolute rounded-full bg-neutral-900 z-10"
-                        style={{
-                            width: dimensions.dot * 0.5,
-                            height: dimensions.dot * 0.5,
-                            top: dimensions.pacman * 0.2,
-                            left: dimensions.pacman * 0.5,
-                        }}
-                    />
-                </div>
+          {/* Top half - semicircle */}
+          <motion.div
+            className="absolute top-0 left-0 w-full overflow-hidden"
+            style={{ 
+              height: config.pacman / 2,
+              transformOrigin: 'center bottom',
+            }}
+            variants={topHalfVariants}
+            animate="animate"
+          >
+            <div
+              style={{
+                width: config.pacman,
+                height: config.pacman,
+                backgroundColor: color,
+                borderRadius: '50%',
+              }}
+            />
+          </motion.div>
 
-                {/* Dots */}
-                <div className="flex items-center" style={{ marginLeft: dimensions.gap }}>
-                    {[0, 1, 2, 3].map((index) => (
-                        <div
-                            key={index}
-                            className="rounded-full animate-pacman-dot"
-                            style={{
-                                width: dimensions.dot,
-                                height: dimensions.dot,
-                                backgroundColor: dotColor,
-                                marginLeft: index > 0 ? dimensions.gap : 0,
-                                animationDelay: `${index * (speed / 4)}ms`,
-                                animationDuration: `${speed}ms`,
-                                boxShadow: `0 0 ${dimensions.dot}px ${dotColor}40`,
-                            }}
-                        />
-                    ))}
-                </div>
-            </div>
+          {/* Bottom half - semicircle */}
+          <motion.div
+            className="absolute bottom-0 left-0 w-full overflow-hidden"
+            style={{ 
+              height: config.pacman / 2,
+              transformOrigin: 'center top',
+            }}
+            variants={bottomHalfVariants}
+            animate="animate"
+          >
+            <div
+              style={{
+                width: config.pacman,
+                height: config.pacman,
+                backgroundColor: color,
+                borderRadius: '50%',
+                marginTop: -(config.pacman / 2),
+              }}
+            />
+          </motion.div>
 
-            {text && (
-                <p className="text-neutral-400 font-gaming text-sm animate-pulse">
-                    {text}
-                </p>
-            )}
-
-            <span className="sr-only">{ariaLabel}</span>
+          {/* Eye */}
+          <div
+            className="absolute bg-black rounded-full"
+            style={{
+              width: config.pacman * 0.12,
+              height: config.pacman * 0.12,
+              top: config.pacman * 0.18,
+              left: config.pacman * 0.55,
+            }}
+          />
         </div>
-    );
-}
 
-export const PacmanLoader = memo(PacmanLoaderComponent);
+        {/* Dots being eaten */}
+        {showDots && (
+          <div className="flex items-center" style={{ gap: config.gap }}>
+            {[0, 1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                className="rounded-full"
+                style={{
+                  width: config.dot,
+                  height: config.dot,
+                  backgroundColor: color,
+                }}
+                animate={{
+                  opacity: i < dotIndex ? 0 : 1,
+                  scale: i < dotIndex ? 0.5 : 1,
+                }}
+                transition={{
+                  duration: 0.15,
+                  ease: 'easeOut',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-interface PacmanSpinnerProps {
-    size?: number;
-    color?: string;
-    className?: string;
-}
-
-function PacmanSpinnerComponent({ 
-    size = 16, 
-    color = '#FACC15',
-    className = '' 
-}: PacmanSpinnerProps) {
-    return (
-        <div 
-            className={`relative ${className}`}
-            style={{ width: size, height: size }}
-            role="status"
-            aria-label="Carregando"
+      {/* Loading message */}
+      {message && (
+        <motion.p
+          className="text-sm font-medium text-gray-600 dark:text-gray-300"
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
         >
-            <div 
-                className="absolute animate-pacman-top"
-                style={{
-                    width: size,
-                    height: size / 2,
-                    background: color,
-                    borderTopLeftRadius: size,
-                    borderTopRightRadius: size,
-                    transformOrigin: 'center bottom',
-                    animationDuration: '300ms',
-                }}
-            />
-            <div 
-                className="absolute animate-pacman-bottom"
-                style={{
-                    width: size,
-                    height: size / 2,
-                    top: size / 2,
-                    background: color,
-                    borderBottomLeftRadius: size,
-                    borderBottomRightRadius: size,
-                    transformOrigin: 'center top',
-                    animationDuration: '300ms',
-                }}
-            />
-        </div>
-    );
+          {message}
+        </motion.p>
+      )}
+    </div>
+  );
+};
+
+// ============================================
+// Custom Hook for managing loader with delays
+// ============================================
+
+interface UseLoaderOptions {
+  /** Delay before showing the loader (prevents flash for quick loads) */
+  showDelay?: number;
+  /** Minimum time the loader must be displayed once shown */
+  minDisplayTime?: number;
 }
 
-export const PacmanSpinner = memo(PacmanSpinnerComponent);
+interface UseLoaderReturn {
+  isVisible: boolean;
+  startLoading: () => void;
+  stopLoading: () => void;
+}
+
+export const useLoader = (options: UseLoaderOptions = {}): UseLoaderReturn => {
+  const { showDelay = 300, minDisplayTime = 500 } = options;
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [showStartTime, setShowStartTime] = useState<number | null>(null);
+
+  const startLoading = useCallback(() => {
+    setIsLoading(true);
+  }, []);
+
+  const stopLoading = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
+  // Handle show delay
+  useEffect(() => {
+    if (isLoading && !isVisible) {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+        setShowStartTime(Date.now());
+      }, showDelay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, isVisible, showDelay]);
+
+  // Handle minimum display time
+  useEffect(() => {
+    if (!isLoading && isVisible && showStartTime) {
+      const elapsed = Date.now() - showStartTime;
+      const remaining = Math.max(0, minDisplayTime - elapsed);
+      
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setShowStartTime(null);
+      }, remaining);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, isVisible, showStartTime, minDisplayTime]);
+
+  return { isVisible, startLoading, stopLoading };
+};
 
 export default PacmanLoader;

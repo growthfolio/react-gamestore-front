@@ -131,7 +131,7 @@ function DetalheProduto() {
   };
 
   if (isLoading) {
-    return <LoadingOverlay isVisible={true} text="Carregando produto..." subtext="Buscando informações e avaliações" />;
+    return <LoadingOverlay isLoading={true} message="Carregando produto..." />;
   }
 
   if (!produto) {

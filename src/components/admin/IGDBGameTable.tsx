@@ -134,7 +134,7 @@ export function IGDBGameTable({ games, onImport, onBatchImport, loading, importi
         return (
             <div className="rounded-lg border border-neutral-800 shadow-card-gaming bg-neutral-900/50 backdrop-blur-sm overflow-hidden">
                 <div className="flex flex-col items-center justify-center py-16">
-                    <PacmanLoader size="lg" text="Buscando jogos no IGDB..." />
+                    <PacmanLoader size="lg" message="Buscando jogos no IGDB..." />
                 </div>
             </div>
         );

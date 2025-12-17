@@ -1,4 +1,4 @@
-export { PacmanLoader, PacmanSpinner } from './PacmanLoader';
+export { PacmanLoader, useLoader } from './PacmanLoader';
 export { default as PacmanLoaderDefault } from './PacmanLoader';
-export { LoadingOverlay, LoadingModal } from './LoadingOverlay';
+export { LoadingOverlay, InlineLoader, LoadingModal } from './LoadingOverlay';
 export { default as LoadingOverlayDefault } from './LoadingOverlay';

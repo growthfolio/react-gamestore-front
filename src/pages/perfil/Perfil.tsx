@@ -5,8 +5,8 @@ import { useToast } from '../../contexts/ToastContext';
 import perfilService, { PerfilStats, ConquistaDTO } from '../../services/perfil.service';
 import { 
   UserCircle, PencilSimple, FloppyDisk, X, Package, ArrowRight, Eye, EyeSlash,
-  Heart, ShoppingCart, GameController, Trophy, Star, Calendar, Shield, Gear,
-  Medal, TrendingUp, Fire, Crown
+  Heart, ShoppingCart, GameController, Trophy, Star, Shield, Gear,
+  Medal, TrendUp, Fire, Crown
 } from '@phosphor-icons/react';
 
 const nivelCores: Record<string, { bg: string; text: string; glow: string }> = {
@@ -21,7 +21,7 @@ const Perfil = () => {
   const { usuario, isAdmin, atualizarUsuario } = useAuth();
   const { success, error } = useToast();
   const [stats, setStats] = useState<PerfilStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -299,7 +299,7 @@ const Perfil = () => {
             {stats && stats.totalGasto > 0 && (
               <div className="card-gaming p-6 bg-gradient-to-br from-accent-500/10 to-transparent">
                 <div className="flex items-center gap-3">
-                  <TrendingUp size={32} className="text-accent-400" />
+                  <TrendUp size={32} className="text-accent-400" />
                   <div>
                     <p className="text-xs text-neutral-500">Total investido em games</p>
                     <p className="text-2xl font-bold text-accent-400">R$ {stats.totalGasto.toFixed(2)}</p>
