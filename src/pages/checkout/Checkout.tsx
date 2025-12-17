@@ -16,29 +16,29 @@ import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import pedidoService from '../../services/pedido.service';
+import billingService from '../../services/billing.service';
 import { CarrinhoItem } from '../../services/carrinho.service';
 
-type CheckoutStep = 'resumo' | 'confirmacao' | 'sucesso';
+type CheckoutStep = 'resumo' | 'confirmacao' | 'processando';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const { usuario } = useAuth();
     const { itens, totalItens, limparCarrinho } = useCarrinho();
-    const { success, error: toastError } = useToast();
+    const { error: toastError, info: toastInfo } = useToast();
     
     const [step, setStep] = useState<CheckoutStep>('resumo');
     const [loading, setLoading] = useState(false);
-    const [pedidoId, setPedidoId] = useState<number | null>(null);
 
     useEffect(() => {
         if (!usuario) {
             navigate('/login');
             return;
         }
-        if (itens.length === 0 && step !== 'sucesso') {
+        if (itens.length === 0) {
             navigate('/carrinho');
         }
-    }, [usuario, itens, step, navigate]);
+    }, [usuario, itens, navigate]);
 
     const calcularTotal = () => {
         return itens.reduce((total: number, item: CarrinhoItem) => {
@@ -55,14 +55,25 @@ const Checkout = () => {
     const handleConfirmarPedido = async () => {
         try {
             setLoading(true);
+            setStep('processando');
+            
+            // 1. Criar pedido no backend (status: PENDENTE_PAGAMENTO)
             const pedido = await pedidoService.criar();
-            setPedidoId(pedido.id);
+            
+            // 2. Criar checkout session no Stripe
+            toastInfo('Redirecionando...', 'Você será direcionado para o pagamento seguro.');
+            const { checkoutUrl } = await billingService.createCheckout(pedido.id);
+            
+            // 3. Limpar carrinho local
             await limparCarrinho();
-            setStep('sucesso');
-            success('Pedido realizado!', `Seu pedido #${pedido.id} foi criado com sucesso.`);
+            
+            // 4. Redirecionar para Stripe Checkout
+            billingService.redirectToCheckout(checkoutUrl);
+            
         } catch (err) {
             console.error('Erro ao criar pedido:', err);
-            toastError('Erro no checkout', 'Não foi possível finalizar seu pedido. Tente novamente.');
+            toastError('Erro no checkout', 'Não foi possível processar seu pedido. Tente novamente.');
+            setStep('resumo');
         } finally {
             setLoading(false);
         }
@@ -70,50 +81,35 @@ const Checkout = () => {
 
     if (!usuario) return null;
 
-    // Página de Sucesso
-    if (step === 'sucesso') {
+    // Página de Processando (redirecionando para Stripe)
+    if (step === 'processando') {
         return (
             <div className="min-h-screen bg-neutral-950 py-12 px-4">
                 <div className="max-w-2xl mx-auto">
                     <div className="card-gaming p-8 text-center">
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-accent-500/20 
+                        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-500/20 
                                       flex items-center justify-center">
-                            <Check size={40} className="text-accent-500" />
+                            <Loader2 size={40} className="text-primary-500 animate-spin" />
                         </div>
                         
-                        <h1 className="heading-gamer text-3xl text-accent-500 mb-4">
-                            Pedido Confirmado!
+                        <h1 className="heading-gamer text-3xl text-primary-400 mb-4">
+                            Processando...
                         </h1>
                         
                         <p className="text-neutral-300 text-lg mb-2">
-                            Seu pedido <span className="text-primary-400 font-bold">#{pedidoId}</span> foi 
-                            realizado com sucesso.
+                            Você será redirecionado para o pagamento seguro.
                         </p>
                         
                         <p className="text-neutral-500 mb-8">
-                            Você receberá um e-mail com os detalhes do seu pedido.
+                            Não feche esta página.
                         </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button
-                                onClick={() => navigate('/pedidos')}
-                                className="btn-primary"
-                            >
-                                <Package size={18} />
-                                Ver Meus Pedidos
-                            </button>
-                            <button
-                                onClick={() => navigate('/produtos')}
-                                className="btn-outline"
-                            >
-                                Continuar Comprando
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
         );
     }
+
+    // Removida página de sucesso - agora é uma página separada (/checkout/success)
 
     return (
         <div className="min-h-screen bg-neutral-950 py-8 px-4">

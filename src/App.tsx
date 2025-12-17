@@ -23,6 +23,8 @@ import AdminIGDB from './pages/admin/igdb/AdminIGDB';
 import AdminProdutos from './pages/admin/produtos/AdminProdutos';
 import AdminPreCadastros from './pages/admin/preCadastros/AdminPreCadastros';
 import Checkout from './pages/checkout/Checkout';
+import CheckoutSuccess from './pages/checkout/CheckoutSuccess';
+import CheckoutCancel from './pages/checkout/CheckoutCancel';
 import Pedidos from './pages/pedidos/Pedidos';
 
 // Páginas Institucionais
@@ -71,6 +73,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Checkout />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/checkout/success" 
+                  element={
+                    <ProtectedRoute>
+                      <CheckoutSuccess />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/checkout/cancel" 
+                  element={
+                    <ProtectedRoute>
+                      <CheckoutCancel />
                     </ProtectedRoute>
                   } 
                 />
