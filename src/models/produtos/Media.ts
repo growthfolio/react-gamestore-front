@@ -191,20 +191,29 @@ export function getBestImageUrl(imagem: ImagemMedia | null, context: 'card' | 'g
 
 /**
  * Obtém a thumbnail de vídeo para um contexto específico
+ * Nota: maxres (1280x720) nem sempre está disponível no YouTube
+ * para vídeos mais antigos, então fazemos fallback progressivo
  */
 export function getBestVideoThumb(video: VideoMedia | null, context: 'small' | 'medium' | 'large' = 'medium'): string | null {
-  if (!video?.urls?.thumbnails) return null;
+  if (!video) return null;
   
-  const thumbs = video.urls.thumbnails;
+  const thumbs = video.urls?.thumbnails;
+  
+  // Fallback: construir URL diretamente do videoId se não houver thumbnails estruturadas
+  const buildFallbackUrl = (quality: 'maxresdefault' | 'sddefault' | 'hqdefault' | 'mqdefault' | 'default') => {
+    if (!video.videoId) return null;
+    return `https://img.youtube.com/vi/${video.videoId}/${quality}.jpg`;
+  };
   
   switch (context) {
     case 'large':
-      return thumbs.maxres || thumbs.standard || thumbs.high;
+      // maxres nem sempre existe, então tentamos várias opções
+      return thumbs?.maxres || thumbs?.standard || thumbs?.high || buildFallbackUrl('hqdefault');
     case 'medium':
-      return thumbs.high || thumbs.medium || thumbs.defaultThumb;
+      return thumbs?.high || thumbs?.medium || thumbs?.defaultThumb || buildFallbackUrl('mqdefault');
     case 'small':
-      return thumbs.medium || thumbs.defaultThumb;
+      return thumbs?.medium || thumbs?.defaultThumb || buildFallbackUrl('default');
     default:
-      return thumbs.high;
+      return thumbs?.high || buildFallbackUrl('hqdefault');
   }
 }
