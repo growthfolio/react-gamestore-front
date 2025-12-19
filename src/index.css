@@ -237,3 +237,151 @@
 .skeleton-shimmer {
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
+
+/* 🎮 Gaming Scrollbar Styles */
+@layer base {
+  /* Webkit Scrollbar (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #171717;
+    border-radius: 6px;
+    border: 1px solid #262626;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00FF4B 0%, #00CC3C 50%, #00992D 100%);
+    border-radius: 6px;
+    border: 2px solid #171717;
+    box-shadow: 
+      0 0 8px rgba(0, 255, 75, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #33FF6F 0%, #00FF4B 50%, #00CC3C 100%);
+    box-shadow: 
+      0 0 12px rgba(0, 255, 75, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(135deg, #66FF93 0%, #33FF6F 50%, #00FF4B 100%);
+    box-shadow: 
+      0 0 16px rgba(0, 255, 75, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: #171717;
+  }
+
+  /* Thin scrollbar variant for smaller areas */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    border: 1px solid #171717;
+  }
+
+  /* Firefox Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #00FF4B #171717;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #00FF4B #171717;
+  }
+}
+
+/* 🎮 Custom Scrollbar Utilities */
+@layer utilities {
+  .scrollbar-gaming {
+    scrollbar-width: thin;
+    scrollbar-color: #00FF4B #171717;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-track {
+    background: #171717;
+    border-radius: 6px;
+    border: 1px solid #262626;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #00FF4B 0%, #00CC3C 50%, #00992D 100%);
+    border-radius: 6px;
+    border: 2px solid #171717;
+    box-shadow: 
+      0 0 8px rgba(0, 255, 75, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #33FF6F 0%, #00FF4B 50%, #00CC3C 100%);
+    box-shadow: 
+      0 0 12px rgba(0, 255, 75, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Alternative color schemes */
+  .scrollbar-primary {
+    scrollbar-color: #0087FF #171717;
+  }
+
+  .scrollbar-primary::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #0087FF 0%, #006BCC 50%, #004F99 100%);
+    box-shadow: 
+      0 0 8px rgba(0, 135, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .scrollbar-primary::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #339FFF 0%, #0087FF 50%, #006BCC 100%);
+    box-shadow: 
+      0 0 12px rgba(0, 135, 255, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .scrollbar-purple {
+    scrollbar-color: #8700FF #171717;
+  }
+
+  .scrollbar-purple::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8700FF 0%, #6B00CC 50%, #4F0099 100%);
+    box-shadow: 
+      0 0 8px rgba(135, 0, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .scrollbar-purple::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #9F33FF 0%, #8700FF 50%, #6B00CC 100%);
+    box-shadow: 
+      0 0 12px rgba(135, 0, 255, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

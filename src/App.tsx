@@ -38,6 +38,10 @@ import ListaCategorias from './components/categorias/listaCategorias/ListaCatego
 // Produtos
 import ListaProdutos from './components/produtos/listaProdutos/ListaProdutos';
 
+// Demo Components
+import ScrollbarDemo from './components/ScrollbarDemo';
+import RedirectOldProductUrl from './components/RedirectOldProductUrl';
+
 function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -54,9 +58,15 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/produtos" element={<ListaProdutos />} />
-                <Route path="/produtos/:id" element={<DetalheProduto />} />
+                <Route path="/produtos/:slug" element={<DetalheProduto />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
+                
+                {/* Redirect para URLs antigas com ID */}
+                <Route path="/produto/:id" element={<RedirectOldProductUrl />} />
+                
+                {/* Demo Route - Remover em produção */}
+                <Route path="/scrollbar-demo" element={<ScrollbarDemo />} />
                 
                 {/* Páginas Institucionais */}
                 <Route path="/sobre" element={<Sobre />} />

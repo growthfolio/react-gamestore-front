@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MagnifyingGlass, X, GameController, Clock } from '@phosphor-icons/react';
 import produtoService, { Produto } from '../../services/produto.service';
+import { getProductUrl } from '../../utils/productUrl';
 
 interface SearchBarProps {
   className?: string;
@@ -73,7 +74,7 @@ function SearchBar({ className = '', placeholder = 'Buscar jogos...', onClose, i
 
   const handleSelectProduct = (produto: Produto) => {
     saveSearch(produto.nome);
-    navigate(`/produtos/${produto.id}`);
+    navigate(getProductUrl(produto));
     setIsOpen(false);
     setQuery('');
     onClose?.();

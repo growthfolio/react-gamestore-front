@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, ShoppingCart, Heart, Star, Eye } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { Produto } from '../../models/produtos/Produto';
+import { getProductUrl } from '../../utils/productUrl';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
@@ -219,7 +220,7 @@ const ProductQuickView = ({ produto, isOpen, onClose, onLoginRequired }: Product
 
                   {/* Link para detalhes completos */}
                   <Link
-                    to={`/produtos/${produto.id}`}
+                    to={getProductUrl(produto)}
                     onClick={onClose}
                     className="w-full bg-neutral-800 hover:bg-neutral-700 text-neutral-200 py-2 px-4 rounded transition-colors border border-neutral-600 flex items-center justify-center gap-2 text-sm"
                   >

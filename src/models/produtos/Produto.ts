@@ -18,6 +18,7 @@ export interface ProdutoResumo {
 export interface Produto {
   id: number;
   nome: string; // Nome do produto.
+  slug?: string; // URL amigável do produto.
   descricao: string; // Descrição detalhada do produto.
   preco: number; // Preço do produto.
   precoComDesconto: number;

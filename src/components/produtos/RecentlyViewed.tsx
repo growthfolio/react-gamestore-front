@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, GameController, Star } from '@phosphor-icons/react';
 import produtoService, { Produto } from '../../services/produto.service';
+import { getProductUrl } from '../../utils/productUrl';
 
 function RecentlyViewed() {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ function RecentlyViewed() {
         {produtos.map((produto) => (
           <div
             key={produto.id}
-            onClick={() => navigate(`/produtos/${produto.id}`)}
+            onClick={() => navigate(getProductUrl(produto))}
             className="card-gaming overflow-hidden group cursor-pointer hover:shadow-glow-sm transition-all"
           >
             <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">

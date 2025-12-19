@@ -6,6 +6,7 @@ import { Heart, ShoppingCart, Star, GameController, CaretLeft, CaretRight } from
 import produtoService, { Produto } from '../../services/produto.service';
 import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useFavoritos } from '../../contexts/FavoritosContext';
+import { getProductUrl } from '../../utils/productUrl';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
@@ -126,7 +127,7 @@ function ProductCarousel({ title, icon, categoriaId, excludeId, limit = 8 }: Pro
         {produtos.map((produto) => (
           <SwiperSlide key={produto.id}>
             <div
-              onClick={() => navigate(`/produtos/${produto.id}`)}
+              onClick={() => navigate(getProductUrl(produto))}
               className="card-gaming overflow-hidden group cursor-pointer hover:shadow-glow-sm transition-all"
             >
               <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">

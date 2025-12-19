@@ -16,7 +16,7 @@ import ProductCarousel from '../../components/produtos/ProductCarousel';
 import MediaGallery from '../../components/produtos/MediaGallery';
 
 function DetalheProduto() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { adicionarItem } = useCarrinho();
@@ -38,19 +38,19 @@ function DetalheProduto() {
     // Scroll para o topo ao carregar a página
     window.scrollTo(0, 0);
     
-    if (id) {
+    if (slug) {
       carregarProduto();
       carregarAvaliacoes();
-      // Salvar no histórico de vistos recentemente
-      saveToRecentlyViewed(Number(id));
     }
-  }, [id]);
+  }, [slug]);
 
   useEffect(() => {
-    if (id) {
-      setFavorito(isFavorito(Number(id)));
+    if (produto?.id) {
+      setFavorito(isFavorito(produto.id));
+      // Salvar no histórico de vistos recentemente
+      saveToRecentlyViewed(produto.id);
     }
-  }, [id, isFavorito]);
+  }, [produto?.id, isFavorito]);
 
   const saveToRecentlyViewed = (produtoId: number) => {
     const key = 'gamestore_recently_viewed';
@@ -63,7 +63,7 @@ function DetalheProduto() {
   async function carregarProduto() {
     try {
       setIsLoading(true);
-      const produtoData = await produtoService.buscarDetalhe(Number(id));
+      const produtoData = await produtoService.buscarPorSlug(slug!);
       setProduto(produtoData);
     } catch (error) {
       console.error('Erro ao carregar produto:', error);
@@ -75,10 +75,12 @@ function DetalheProduto() {
   }
 
   async function carregarAvaliacoes() {
+    if (!produto?.id) return;
+    
     try {
       const [avaliacoesData, mediaData] = await Promise.all([
-        avaliacaoService.listarPorProduto(Number(id)),
-        avaliacaoService.buscarMedia(Number(id)),
+        avaliacaoService.listarPorProduto(produto.id),
+        avaliacaoService.buscarMedia(produto.id),
       ]);
       setAvaliacoes(avaliacoesData);
       setMediaAvaliacao(mediaData);
@@ -87,17 +89,28 @@ function DetalheProduto() {
     }
   }
 
+  // Recarregar avaliações quando produto for carregado
+  useEffect(() => {
+    if (produto?.id) {
+      carregarAvaliacoes();
+    }
+  }, [produto?.id]);
+
   async function handleAdicionarCarrinho() {
+    if (!produto?.id) return;
+    
     try {
-      await adicionarItem({ produtoId: Number(id), quantidade });
+      await adicionarItem({ produtoId: produto.id, quantidade });
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);
     }
   }
 
   async function handleToggleFavorito() {
+    if (!produto?.id) return;
+    
     try {
-      const novoStatus = await toggleFavorito(Number(id));
+      const novoStatus = await toggleFavorito(produto.id);
       setFavorito(novoStatus);
       toast.success(novoStatus ? 'Favoritado!' : 'Removido', novoStatus ? 'Produto adicionado aos favoritos' : 'Produto removido dos favoritos');
     } catch (error) {

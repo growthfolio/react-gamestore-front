@@ -6,6 +6,7 @@ import { Produto } from "../../../models/produtos/Produto";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useCarrinho } from "../../../contexts/CarrinhoContext";
 import { useFavoritos } from "../../../contexts/FavoritosContext";
+import { getProductUrl } from "../../../utils/productUrl";
 import FormularioProduto from "../formularioProduto/FormularioProduto";
 import DeletarProduto from "../deletarProdutos/DeletarProduto";
 import FilterSidebar, { FilterState } from "../FilterSidebar";
@@ -148,7 +149,7 @@ function ListaProdutos() {
 
   const ProductCard = ({ produto }: { produto: Produto }) => (
     <Link
-      to={`/produtos/${produto.id}`}
+      to={getProductUrl(produto)}
       className={`card-gaming overflow-hidden group hover:shadow-glow-md transition-all ${
         viewMode === 'list' ? 'flex' : ''
       }`}
