@@ -1,21 +1,34 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import produtoService from '../services/produto.service';
 
 /**
- * Componente para redirecionar URLs antigas (/produtos/:id) para novas (/produtos/:slug)
+ * Componente para redirecionar URLs antigas (/produtos/:id ou /produto/:id) para novas (/produtos/:slug)
  */
 function RedirectOldProductUrl() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const redirectToSlug = async () => {
-      if (!id || isNaN(Number(id))) {
+      if (!id) {
         navigate('/produtos', { replace: true });
         return;
       }
 
+      // Se o parâmetro não é um número, pode ser um slug, então redireciona para a rota correta
+      if (isNaN(Number(id))) {
+        // Se estamos em /produto/:slug, redireciona para /produtos/:slug
+        if (location.pathname.startsWith('/produto/')) {
+          navigate(`/produtos/${id}`, { replace: true });
+          return;
+        }
+        // Se já estamos em /produtos/:slug, não faz nada (deixa o React Router lidar)
+        return;
+      }
+
+      // Se é um número, busca o produto pelo ID e redireciona para o slug
       try {
         const produto = await produtoService.buscarPorId(Number(id));
         if (produto.slug) {
@@ -31,7 +44,7 @@ function RedirectOldProductUrl() {
     };
 
     redirectToSlug();
-  }, [id, navigate]);
+  }, [id, navigate, location.pathname]);
 
   // Mostra loading enquanto redireciona
   return (

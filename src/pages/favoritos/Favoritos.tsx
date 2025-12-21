@@ -4,6 +4,7 @@ import { useCarrinho } from '../../contexts/CarrinhoContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Heart, ShoppingCart, Trash, GameController, User, Star, ShareNetwork } from '@phosphor-icons/react';
 import { useToast } from '../../contexts/ToastContext';
+import { getProductUrl } from '../../utils/productUrl';
 
 function Favoritos() {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ function Favoritos() {
     
     return (
       <div key={item.produtoId} className="card-gaming overflow-hidden group">
-        <Link to={`/produtos/${item.produtoId}`} className="block relative aspect-[3/4] bg-neutral-800 overflow-hidden">
+        <Link to={getProductUrl({ id: item.produtoId, slug: item.slug, nome: item.nome })} className="block relative aspect-[3/4] bg-neutral-800 overflow-hidden">
           {item.imagem ? (
             <img src={item.imagem} alt={item.nome} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
           ) : (
@@ -142,7 +143,7 @@ function Favoritos() {
     
     return (
       <div key={item.id} className="card-gaming overflow-hidden group">
-        <Link to={`/produtos/${produto.id}`} className="block relative aspect-[3/4] bg-neutral-800 overflow-hidden">
+        <Link to={getProductUrl(produto)} className="block relative aspect-[3/4] bg-neutral-800 overflow-hidden">
           {produto.imagemPrincipal ? (
             <img src={produto.imagemPrincipal} alt={produto.nome} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
           ) : (
@@ -158,7 +159,7 @@ function Favoritos() {
         </Link>
 
         <div className="p-4">
-          <Link to={`/produtos/${produto.id}`} className="font-semibold text-neutral-100 hover:text-primary-400 transition-colors line-clamp-1 block mb-1">
+          <Link to={getProductUrl(produto)} className="font-semibold text-neutral-100 hover:text-primary-400 transition-colors line-clamp-1 block mb-1">
             {produto.nome}
           </Link>
 

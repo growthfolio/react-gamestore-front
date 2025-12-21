@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { getErrorMessage } from '../../utils/errorHandler';
 import { CarrinhoItem } from '../../services/carrinho.service';
 import { ShoppingCart, Trash, Plus, Minus, CreditCard, Package, ShieldCheck, Truck, User, Tag, GameController } from '@phosphor-icons/react';
+import { getProductUrl } from '../../utils/productUrl';
 
 const Carrinho = () => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ const Carrinho = () => {
     
     return (
       <div key={item.produtoId} className="card-gaming p-4 flex gap-4 items-center relative">
-        <Link to={`/produtos/${item.produtoId}`} className="w-24 h-32 flex-shrink-0 overflow-hidden rounded-lg group">
+        <Link to={getProductUrl({ id: item.produtoId, slug: item.slug, nome: item.nome })} className="w-24 h-32 flex-shrink-0 overflow-hidden rounded-lg group">
           {item.imagem ? (
             <img src={item.imagem} alt={item.nome} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
           ) : (
@@ -123,7 +124,7 @@ const Carrinho = () => {
   // Renderiza item do carrinho do servidor (logado)
   const renderServerItem = (item: CarrinhoItem) => (
     <div key={item.id} className="card-gaming p-4 flex gap-4 items-center relative">
-      <Link to={`/produtos/${item.produtoId}`} className="w-24 h-32 flex-shrink-0 overflow-hidden rounded-lg group">
+      <Link to={getProductUrl({ id: item.produtoId, slug: item.produtoSlug, nome: item.produtoNome })} className="w-24 h-32 flex-shrink-0 overflow-hidden rounded-lg group">
         {item.produtoImagem ? (
           <img src={item.produtoImagem} alt={item.produtoNome} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
         ) : (

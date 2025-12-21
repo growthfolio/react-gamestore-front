@@ -8,6 +8,7 @@ import 'swiper/css/effect-fade';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
 import produtoService, { Produto } from '../../services/produto.service';
+import { getProductUrl } from '../../utils/productUrl';
 import categoriaService, { Categoria } from '../../services/categoria.service';
 import bannerService, { Banner } from '../../services/banner.service';
 import { ShoppingCart, GameController, Heart, Star, Fire, Clock, Sparkle, Users, Headset, ShieldCheck } from '@phosphor-icons/react';
@@ -203,7 +204,7 @@ function Home() {
     const ProductCard = ({ produto }: { produto: Produto }) => (
         <div
             className="group card-gaming overflow-hidden hover:shadow-glow-md cursor-pointer relative"
-            onClick={() => navigate(`/produtos/${produto.id}`)}
+            onClick={() => navigate(getProductUrl(produto))}
         >
             <div className="relative aspect-[3/4] bg-neutral-800 overflow-hidden">
                 <img

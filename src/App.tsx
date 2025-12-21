@@ -41,6 +41,7 @@ import ListaProdutos from './components/produtos/listaProdutos/ListaProdutos';
 // Demo Components
 import ScrollbarDemo from './components/ScrollbarDemo';
 import RedirectOldProductUrl from './components/RedirectOldProductUrl';
+import ProductRouter from './components/ProductRouter';
 
 function App() {
   return (
@@ -58,11 +59,11 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Cadastro />} />
                 <Route path="/produtos" element={<ListaProdutos />} />
-                <Route path="/produtos/:slug" element={<DetalheProduto />} />
+                <Route path="/produtos/:slugOrId" element={<ProductRouter />} />
                 <Route path="/favoritos" element={<Favoritos />} />
                 <Route path="/carrinho" element={<Carrinho />} />
                 
-                {/* Redirect para URLs antigas com ID */}
+                {/* Redirect para URLs antigas com /produto/ (singular) */}
                 <Route path="/produto/:id" element={<RedirectOldProductUrl />} />
                 
                 {/* Demo Route - Remover em produção */}

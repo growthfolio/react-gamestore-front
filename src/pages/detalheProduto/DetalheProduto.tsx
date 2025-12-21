@@ -16,12 +16,15 @@ import ProductCarousel from '../../components/produtos/ProductCarousel';
 import MediaGallery from '../../components/produtos/MediaGallery';
 
 function DetalheProduto() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, slugOrId } = useParams<{ slug?: string; slugOrId?: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { adicionarItem } = useCarrinho();
   const { isFavorito, toggleFavorito } = useFavoritos();
   const toast = useToast();
+
+  // Usar slugOrId se disponível, senão usar slug (para compatibilidade)
+  const currentSlug = slugOrId || slug;
 
   const [produto, setProduto] = useState<ProdutoDetalhe | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
@@ -38,11 +41,11 @@ function DetalheProduto() {
     // Scroll para o topo ao carregar a página
     window.scrollTo(0, 0);
     
-    if (slug) {
+    if (currentSlug) {
       carregarProduto();
       carregarAvaliacoes();
     }
-  }, [slug]);
+  }, [currentSlug]);
 
   useEffect(() => {
     if (produto?.id) {
@@ -63,7 +66,7 @@ function DetalheProduto() {
   async function carregarProduto() {
     try {
       setIsLoading(true);
-      const produtoData = await produtoService.buscarPorSlug(slug!);
+      const produtoData = await produtoService.buscarPorSlug(currentSlug!);
       setProduto(produtoData);
     } catch (error) {
       console.error('Erro ao carregar produto:', error);
